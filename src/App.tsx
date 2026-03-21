@@ -285,7 +285,7 @@ const Navbar = () => {
               <a href="https://github.com/ignitext" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-yellow-400 transition-colors">
                 <Github className="w-6 h-6" />
               </a>
-              <a href="mailto:skmdsadiq1607@gmail.com" className="text-zinc-500 hover:text-yellow-400 transition-colors">
+              <a href="https://mail.google.com/mail/?view=cm&fs=1&to=Ignitext@gmail.com" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-yellow-400 transition-colors">
                 <Mail className="w-6 h-6" />
               </a>
             </motion.div>
@@ -1209,7 +1209,7 @@ const Contact = () => {
     try {
       await addDoc(collection(db, path), {
         ...formData,
-        to: 'skmdsadiq1607@gmail.com',
+        to: 'Ignitext@gmail.com',
         timestamp: serverTimestamp()
       });
       setStatus('success');
@@ -1238,7 +1238,7 @@ const Contact = () => {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[
-                { icon: Mail, title: 'Email Us', value: 'skmdsadiq1607@gmail.com', link: 'mailto:skmdsadiq1607@gmail.com' },
+                { icon: Mail, title: 'Email Us', value: 'Ignitext@gmail.com', link: 'https://mail.google.com/mail/?view=cm&fs=1&to=Ignitext@gmail.com' },
                 { icon: MessageSquare, title: 'WhatsApp', value: 'Official Channel', link: 'https://whatsapp.com/channel/0029VbAfiQzD38CarXrTNj1g' },
                 { icon: HomeIcon, title: 'Location', value: 'Anurag University', link: '#' },
                 { icon: Instagram, title: 'Instagram', value: '@ignite.xt', link: 'https://www.instagram.com/ignite.xt/' }
@@ -1328,11 +1328,13 @@ const Contact = () => {
                   <p className="text-center text-xs text-green-400 font-medium animate-pulse">Message sent successfully! We'll get back to you soon.</p>
                   <div className="flex justify-center">
                     <a 
-                      href={`mailto:skmdsadiq1607@gmail.com?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(formData.message)}`}
+                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=Ignitext@gmail.com&su=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(formData.message)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-yellow-400 hover:text-yellow-300 transition-colors"
                     >
                       <Mail className="w-3 h-3" />
-                      <span>Open in Email Client</span>
+                      <span>Open in Gmail</span>
                     </a>
                   </div>
                 </div>
@@ -1351,71 +1353,73 @@ const Contact = () => {
 // --- Landing Page ---
 const LandingPage = ({ onStart }: { onStart: () => void }) => {
   return (
-    <div className="fixed inset-0 z-[200] bg-zinc-950 flex flex-col items-center justify-center overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-20" />
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-yellow-400/10 blur-[120px] rounded-full animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-yellow-400/5 blur-[120px] rounded-full animate-pulse delay-700" />
-      
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="max-w-4xl px-4 text-center space-y-12 relative z-10"
-      >
-        <div className="space-y-6">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, type: "spring" }}
-            className="flex justify-center mb-8"
-          >
-            <Logo className="w-20 h-20" iconOnly />
-          </motion.div>
-          
-          <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter leading-tight">
-            Welcome to <span className="text-yellow-400">IgniteXT</span>
-          </h1>
-          <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-            The most powerful student-led community platform at Anurag University. 
-            Access premium academic resources, stay updated with campus events, 
-            and connect with the brightest minds.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-          {[
-            { icon: BookOpen, title: "Academic Hub", desc: "Structured notes and materials for all departments." },
-            { icon: Calendar, title: "Event Updates", desc: "Never miss a workshop, hackathon, or meetup." },
-            { icon: Users, title: "Community", desc: "Join 1000+ students in a collaborative ecosystem." }
-          ].map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 + i * 0.1 }}
-              className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
-            >
-              <item.icon className="w-6 h-6 text-yellow-400 mb-4" />
-              <h3 className="text-white font-bold mb-2">{item.title}</h3>
-              <p className="text-zinc-500 text-xs leading-relaxed">{item.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onStart}
-          className="group px-8 md:px-12 py-4 md:py-5 bg-yellow-400 text-black font-black rounded-2xl hover:bg-yellow-300 transition-all shadow-2xl shadow-yellow-400/20 flex items-center justify-center space-x-3 mx-auto w-full sm:w-auto"
+    <div className="fixed inset-0 z-[200] bg-zinc-950 overflow-y-auto">
+      <div className="min-h-screen flex flex-col items-center justify-center py-12 relative">
+        {/* Background Elements */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-yellow-400/10 blur-[120px] rounded-full animate-pulse pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-yellow-400/5 blur-[120px] rounded-full animate-pulse delay-700 pointer-events-none" />
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="max-w-4xl px-4 text-center space-y-12 relative z-10 w-full"
         >
-          <span>LET'S START</span>
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-        </motion.button>
-      </motion.div>
+          <div className="space-y-6">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, type: "spring" }}
+              className="flex justify-center mb-8"
+            >
+              <Logo className="w-20 h-20" iconOnly />
+            </motion.div>
+            
+            <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter leading-tight">
+              Welcome to <span className="text-yellow-400">IgniteXT</span>
+            </h1>
+            <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+              The most powerful student-led community platform at Anurag University. 
+              Access premium academic resources, stay updated with campus events, 
+              and connect with the brightest minds.
+            </p>
+          </div>
 
-      <div className="absolute bottom-8 text-zinc-600 text-[10px] font-bold tracking-[0.3em] uppercase">
-        IgniteXT Technical Team • 2026
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+            {[
+              { icon: BookOpen, title: "Academic Hub", desc: "Structured notes and materials for all departments." },
+              { icon: Calendar, title: "Event Updates", desc: "Never miss a workshop, hackathon, or meetup." },
+              { icon: Users, title: "Community", desc: "Join 1000+ students in a collaborative ecosystem." }
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 + i * 0.1 }}
+                className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
+              >
+                <item.icon className="w-6 h-6 text-yellow-400 mb-4" />
+                <h3 className="text-white font-bold mb-2">{item.title}</h3>
+                <p className="text-zinc-500 text-xs leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onStart}
+            className="group px-8 md:px-12 py-4 md:py-5 bg-yellow-400 text-black font-black rounded-2xl hover:bg-yellow-300 transition-all shadow-2xl shadow-yellow-400/20 flex items-center justify-center space-x-3 mx-auto w-full sm:w-auto"
+          >
+            <span>LET'S START</span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </motion.button>
+        </motion.div>
+
+        <div className="mt-12 text-zinc-600 text-[10px] font-bold tracking-[0.3em] uppercase relative z-10">
+          IgniteXT Technical Team • 2026
+        </div>
       </div>
     </div>
   );

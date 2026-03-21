@@ -23,7 +23,7 @@ service cloud.firestore {
              data.email is string && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
              data.subject is string && data.subject.size() > 0 && data.subject.size() < 200 &&
              data.message is string && data.message.size() > 0 && data.message.size() < 5000 &&
-             data.to == "skmdsadiq1607@gmail.com";
+             data.to == "Ignitext@gmail.com";
     }
 
     match /messages/{messageId} {
