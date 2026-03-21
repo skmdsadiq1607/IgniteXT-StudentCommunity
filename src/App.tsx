@@ -389,12 +389,12 @@ const Home = () => {
               <span>Anurag University's Premier Tech Hub</span>
             </motion.div>
             
-            <h1 className="text-5xl md:text-8xl font-black tracking-tight leading-[1.1] text-white">
-              <span className="text-yellow-400">IgniteXT</span> <br className="md:hidden" /> <span className="text-white/90">x AnuragU</span>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight text-white">
+              <span className="text-yellow-400">IgniteXT</span> <span className="text-white/40 font-light">x</span> <span className="text-white/90">AnuragU</span>
             </h1>
             
-            <p className="text-base md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-medium">
-              The ultimate student-led resource hub for Anurag University. Empowering the next generation of innovators.
+            <p className="text-base md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+              The ultimate student-led resource hub for <span className="text-white">Anurag University</span>. Empowering the next generation of innovators.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -473,6 +473,58 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Founder Recognition Section */}
+      <section className="py-24 bg-zinc-950 border-t border-white/5 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(234,179,8,0.05),transparent_70%)]" />
+        <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
+          <div className="flex flex-col items-center text-center space-y-12">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="space-y-4"
+            >
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-yellow-400/10 text-yellow-400 text-[10px] font-bold uppercase tracking-[0.3em]">
+                <Sparkles className="w-3 h-3" />
+                <span>Founder's Recognition</span>
+              </div>
+              <h2 className="text-4xl md:text-7xl font-black text-white tracking-tighter">
+                Special Thanks to our <span className="text-yellow-400">Founder</span>
+              </h2>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="relative group max-w-2xl w-full"
+            >
+              <div className="absolute -inset-4 bg-gradient-to-r from-yellow-400/20 to-transparent blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <div className="relative p-10 rounded-[3rem] bg-zinc-900/50 border border-white/10 backdrop-blur-xl space-y-8">
+                <div className="w-24 h-24 rounded-3xl bg-yellow-400 flex items-center justify-center mx-auto shadow-2xl shadow-yellow-400/20 group-hover:rotate-6 transition-transform duration-500">
+                  <User className="w-12 h-12 text-black" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Akshath Sugandh</h3>
+                  <p className="text-yellow-400 font-bold uppercase tracking-[0.2em] text-xs">Founder of IgniteXT</p>
+                </div>
+                <p className="text-zinc-400 text-lg leading-relaxed italic">
+                  "Building a community isn't just about resources; it's about creating a space where every student feels empowered to innovate and lead. IgniteXT is the spark for that journey."
+                </p>
+                <div className="flex justify-center space-x-4 pt-4">
+                  <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:text-yellow-400 hover:bg-yellow-400/10 transition-all">
+                    <Linkedin className="w-5 h-5" />
+                  </a>
+                  <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:text-yellow-400 hover:bg-yellow-400/10 transition-all">
+                    <Twitter className="w-5 h-5" />
+                  </a>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Technical Team Thanks Section */}
       <section className="py-24 bg-zinc-950 border-t border-white/5 relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent" />
@@ -489,12 +541,12 @@ const Home = () => {
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
             {[
-              { name: "Sadiq", role: "Developer" },
-              { name: "Bharath", role: "Tech Lead" },
-              { name: "Santhoshini", role: "Developer" },
-              { name: "Mrudhula", role: "Developer" },
-              { name: "Rohit", role: "Developer" },
-              { name: "Fathima", role: "Developer" }
+              { name: "Sadiq", role: "Developer", github: "https://github.com/skmdsadiq1607", linkedin: "https://www.linkedin.com/in/sk-md-sadiq-1607/" },
+              { name: "Bharath", role: "Tech Lead", github: "#", linkedin: "#" },
+              { name: "Santhoshini", role: "Developer", github: "#", linkedin: "#" },
+              { name: "Mrudhula", role: "Developer", github: "#", linkedin: "#" },
+              { name: "Rohit", role: "Developer", github: "#", linkedin: "#" },
+              { name: "Fathima", role: "Developer", github: "#", linkedin: "#" }
             ].map((member, i) => (
               <motion.div
                 key={i}
@@ -503,13 +555,23 @@ const Home = () => {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
                 whileHover={{ y: -5 }}
-                className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 text-center space-y-3 group hover:border-yellow-400/20 hover:bg-zinc-900/60 transition-all duration-500"
+                className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 text-center space-y-4 group hover:border-yellow-400/20 hover:bg-zinc-900/60 transition-all duration-500"
               >
                 <div className="w-10 h-10 rounded-xl bg-yellow-400/5 flex items-center justify-center text-yellow-400 mx-auto mb-2 group-hover:scale-110 transition-transform">
                   <User className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">{member.name}</h4>
-                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">{member.role}</p>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">{member.name}</h4>
+                  <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">{member.role}</p>
+                </div>
+                <div className="flex justify-center space-x-2 pt-2">
+                  <a href={member.github} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg bg-white/5 text-zinc-500 hover:text-yellow-400 hover:bg-yellow-400/10 transition-all">
+                    <Github className="w-3.5 h-3.5" />
+                  </a>
+                  <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg bg-white/5 text-zinc-500 hover:text-yellow-400 hover:bg-yellow-400/10 transition-all">
+                    <Linkedin className="w-3.5 h-3.5" />
+                  </a>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -1286,12 +1348,102 @@ const Contact = () => {
   );
 };
 
+// --- Landing Page ---
+const LandingPage = ({ onStart }: { onStart: () => void }) => {
+  return (
+    <div className="fixed inset-0 z-[200] bg-zinc-950 flex flex-col items-center justify-center overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-20" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-yellow-400/10 blur-[120px] rounded-full animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-yellow-400/5 blur-[120px] rounded-full animate-pulse delay-700" />
+      
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="max-w-4xl px-4 text-center space-y-12 relative z-10"
+      >
+        <div className="space-y-6">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, type: "spring" }}
+            className="flex justify-center mb-8"
+          >
+            <Logo className="w-20 h-20" iconOnly />
+          </motion.div>
+          
+          <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter leading-tight">
+            Welcome to <span className="text-yellow-400">IgniteXT</span>
+          </h1>
+          <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+            The most powerful student-led community platform at Anurag University. 
+            Access premium academic resources, stay updated with campus events, 
+            and connect with the brightest minds.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+          {[
+            { icon: BookOpen, title: "Academic Hub", desc: "Structured notes and materials for all departments." },
+            { icon: Calendar, title: "Event Updates", desc: "Never miss a workshop, hackathon, or meetup." },
+            { icon: Users, title: "Community", desc: "Join 1000+ students in a collaborative ecosystem." }
+          ].map((item, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 + i * 0.1 }}
+              className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
+            >
+              <item.icon className="w-6 h-6 text-yellow-400 mb-4" />
+              <h3 className="text-white font-bold mb-2">{item.title}</h3>
+              <p className="text-zinc-500 text-xs leading-relaxed">{item.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onStart}
+          className="group px-12 py-5 bg-yellow-400 text-black font-black rounded-2xl hover:bg-yellow-300 transition-all shadow-2xl shadow-yellow-400/20 flex items-center space-x-3 mx-auto"
+        >
+          <span>LET'S START</span>
+          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+        </motion.button>
+      </motion.div>
+
+      <div className="absolute bottom-8 text-zinc-600 text-[10px] font-bold tracking-[0.3em] uppercase">
+        IgniteXT Technical Team • 2026
+      </div>
+    </div>
+  );
+};
+
 // --- Main App ---
 export default function App() {
+  const [hasStarted, setHasStarted] = useState(false);
+
   return (
     <ErrorBoundary>
+      <AnimatePresence>
+        {!hasStarted && (
+          <motion.div
+            key="landing"
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+          >
+            <LandingPage onStart={() => setHasStarted(true)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Router>
-        <div className="min-h-screen bg-black text-white selection:bg-yellow-500/30 selection:text-yellow-500">
+        <div className={cn(
+          "min-h-screen bg-black text-white selection:bg-yellow-500/30 selection:text-yellow-500 transition-opacity duration-1000",
+          hasStarted ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}>
           <Navbar />
           <main>
             <Routes>

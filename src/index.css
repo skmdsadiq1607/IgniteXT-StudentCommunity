@@ -1,181 +1,44 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Inter", ui-monospace, SFMono-Regular, monospace;
-
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
-
-  --background-image-premium-gradient: linear-gradient(to bottom right, var(--color-yellow-400), var(--color-orange-500));
+  --font-sans: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
 }
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 45 93% 47%; /* Yellow-500ish */
-    --primary-foreground: 0 0% 0%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 45 93% 47%;
-    --radius: 1rem;
-  }
-
-  .dark {
-    --background: 240 18% 7%; /* #0f1115 equivalentish */
-    --foreground: 0 0% 98%;
-    --card: 240 18% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 18% 7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 45 93% 47%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 240 10% 12%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 10% 12%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 10% 12%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 10% 15%;
-    --input: 240 10% 15%;
-    --ring: 45 93% 47%;
-  }
-
-  html {
-    scroll-behavior: smooth;
-  }
-
   body {
-    @apply bg-background text-foreground antialiased transition-colors duration-500;
+    @apply bg-zinc-950 text-zinc-100 antialiased selection:bg-yellow-500/30 selection:text-yellow-500;
     font-family: var(--font-sans);
-    line-height: 1.6;
-    letter-spacing: -0.01em;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.03em;
-    line-height: 1.2;
   }
 }
 
 @layer utilities {
-  .noise {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: 0.03;
-    pointer-events: none;
+  .glow-yellow {
+    box-shadow: 0 0 15px rgba(234, 179, 8, 0.2);
   }
-
-  .mesh-gradient {
-    background-color: hsla(var(--background));
-    background-image: 
-      radial-gradient(at 0% 0%, hsla(var(--primary) / 0.15) 0px, transparent 50%),
-      radial-gradient(at 50% 0%, hsla(var(--accent) / 0.1) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, hsla(var(--primary) / 0.15) 0px, transparent 50%);
+  .glow-yellow-lg {
+    box-shadow: 0 0 30px rgba(234, 179, 8, 0.3);
   }
-
-  .glow-primary {
-    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+  .text-glow-yellow {
+    text-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
   }
-
-  .glow-border {
-    position: relative;
-  }
-  .glow-border::after {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    background: linear-gradient(45deg, hsl(var(--primary) / 0.5), transparent, hsl(var(--primary) / 0.5));
-    border-radius: inherit;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  .glow-border:hover::after {
-    opacity: 1;
-  }
-
-  .link-underline {
-    position: relative;
-  }
-  .link-underline::after {
-    content: "";
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: hsl(var(--primary));
-    transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .link-underline:hover::after {
-    width: 100%;
-  }
-
   .bg-dot-pattern {
-    background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     background-size: 24px 24px;
   }
   .bg-grid-pattern {
-    background-image: linear-gradient(to right, hsl(var(--foreground) / 0.03) 1px, transparent 1px),
-                      linear-gradient(to bottom, hsl(var(--foreground) / 0.03) 1px, transparent 1px);
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
     background-size: 40px 40px;
   }
-  .glass {
-    @apply bg-background/60 backdrop-blur-xl border border-border/50;
-  }
-  .text-premium {
-    @apply bg-clip-text text-transparent bg-premium-gradient;
-  }
+}
+
+.glass {
+  @apply bg-zinc-900/50 backdrop-blur-md border border-white/5;
 }
 
 .card-hover {
-  @apply transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10;
-}
-
-.btn-hover {
-  @apply transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] hover:shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)];
-}
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
+  @apply transition-all duration-300 ease-in-out hover:scale-[1.02] hover:border-yellow-500/30 hover:shadow-lg hover:shadow-yellow-500/10;
 }
 
