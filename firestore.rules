@@ -1,52 +1,196 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /users/{userId}
+    // Document ID: {userId} (matches request.auth.uid)
+    // Fields:
+    //   - uid: string (required, immutable) - Unique identifier for the user.
+    //   - displayName: string (optional) - User's full name.
+    //   - email: string (required, format: email) - User's college email.
+    //   - role: string (required, enum: ['admin', 'client']) - User's role.
+    //   - createdAt: timestamp (optional, immutable) - When the user account was created.
+    //
+    // Collection: /resources/{resourceId}
+    // Document ID: auto-generated
+    // Fields:
+    //   - title: string (required, min: 1, max: 100) - Title of the resource.
+    //   - description: string (optional, max: 500) - Brief description.
+    //   - category: string (required, max: 50) - Department or subject.
+    //   - year: string (required, max: 20) - Academic year.
+    //   - link: string (required, format: url) - Link to Google Drive.
+    //   - authorId: string (optional, immutable) - UID of the user who shared it.
+    //   - createdAt: timestamp (optional, immutable) - When it was added.
+    //
+    // Collection: /events/{eventId}
+    // Document ID: auto-generated
+    // Fields:
+    //   - title: string (required, min: 1, max: 100) - Title of the event.
+    //   - description: string (optional, max: 1000) - Detailed description.
+    //   - date: timestamp (required) - When the event will take place.
+    //   - location: string (optional, max: 200) - Where it will be held.
+    //   - link: string (optional, format: url) - Link for registration.
+    //   - type: string (required, enum: ['Workshop', 'Seminar', 'Hackathon', 'Social']) - Type of event.
+    //   - createdAt: timestamp (optional, immutable) - When it was posted.
+    //
+    // Collection: /contacts/{contactId}
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required, min: 1, max: 100) - Sender's name.
+    //   - email: string (required, format: email) - Sender's email.
+    //   - message: string (required, min: 1, max: 2000) - Message content.
+    //   - createdAt: timestamp (optional, immutable) - When it was sent.
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
     function isAuthenticated() {
       return request.auth != null;
     }
-    
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
     function isAdmin() {
-      return isAuthenticated() && (
-        request.auth.token.email == "sadiqsk1607@gmail.com" && request.auth.token.email_verified == true
-      );
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "sadiqsk1607@gmail.com" && request.auth.token.email_verified == true));
     }
 
-    // Resources: Publicly readable, admin writable
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) ||
+        request.resource.data.uid == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return !('uid' in request.resource.data) ||
+        request.resource.data.uid == resource.data.uid;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string &&
+        (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['uid', 'displayName', 'email', 'role', 'createdAt']) &&
+             data.uid is string && data.uid.size() > 0 &&
+             isValidEmail(data.email) &&
+             data.role in ['admin', 'client'] &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 100));
+    }
+
+    function isValidResource(data) {
+      return hasOnlyAllowedFields(['title', 'description', 'category', 'year', 'link', 'authorId', 'createdAt']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 100 &&
+             data.category is string && data.category.size() <= 50 &&
+             data.year is string && data.year.size() <= 20 &&
+             isValidUrl(data.link) &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 500));
+    }
+
+    function isValidEvent(data) {
+      return hasOnlyAllowedFields(['title', 'description', 'date', 'location', 'link', 'type', 'createdAt']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 100 &&
+             data.date is timestamp &&
+             data.type in ['Workshop', 'Seminar', 'Hackathon', 'Social'] &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 1000)) &&
+             (!('location' in data) || (data.location is string && data.location.size() <= 200)) &&
+             (!('link' in data) || isValidUrl(data.link));
+    }
+
+    function isValidContact(data) {
+      return hasOnlyAllowedFields(['name', 'email', 'message', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             isValidEmail(data.email) &&
+             data.message is string && data.message.size() > 0 && data.message.size() <= 2000;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      // Users can only read their own profile. Admins can read all.
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can only create their own profile with 'client' role. Admins can create any.
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    ((isOwner(userId) && request.resource.data.role == 'client') || isAdmin());
+      
+      // Users can only update their own profile, but cannot change their role. Admins can update any.
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    ((isOwner(userId) && request.resource.data.role == resource.data.role && uidNotModified() && areImmutableFieldsUnchanged(['createdAt'])) || isAdmin());
+      
+      allow delete: if isAdmin();
+    }
+
     match /resources/{resourceId} {
+      // Resources are publicly readable.
       allow read: if true;
-      allow write: if isAdmin();
+      
+      // Only admins can create/update/delete resources.
+      allow create: if isAdmin() && isValidResource(request.resource.data);
+      allow update: if isAdmin() && isValidResource(request.resource.data) && areImmutableFieldsUnchanged(['authorId', 'createdAt']);
+      allow delete: if isAdmin();
     }
 
-    // Team: Publicly readable, admin writable
-    match /team/{memberId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // Events: Publicly readable, admin writable
     match /events/{eventId} {
+      // Events are publicly readable.
       allow read: if true;
-      allow write: if isAdmin();
+      
+      // Only admins can create/update/delete events.
+      allow create: if isAdmin() && isValidEvent(request.resource.data);
+      allow update: if isAdmin() && isValidEvent(request.resource.data) && areImmutableFieldsUnchanged(['createdAt']);
+      allow delete: if isAdmin();
     }
 
-    // Messages: Anyone can create, only admin can read
-    function isValidMessage(data) {
-      return data.keys().hasAll(['name', 'email', 'subject', 'message', 'to']) &&
-             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
-             data.email is string && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
-             data.subject is string && data.subject.size() > 0 && data.subject.size() < 200 &&
-             data.message is string && data.message.size() > 0 && data.message.size() < 5000 &&
-             data.to == "skmdsadiq1607@gmail.com";
-    }
-
-    match /messages/{messageId} {
-      allow create: if isValidMessage(request.resource.data);
+    match /contacts/{contactId} {
+      // Only admins can read contact submissions.
       allow read: if isAdmin();
+      
+      // Anyone can submit a contact form.
+      allow create: if isValidContact(request.resource.data);
+      
+      // Contact submissions are immutable.
+      allow update, delete: if false;
     }
-    
+
     // Default deny
-    match /{document=**} {
+    match /{path=**} {
       allow read, write: if false;
     }
   }

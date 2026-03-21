@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, createContext, useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast, Toaster } from 'react-hot-toast';
+import confetti from 'canvas-confetti';
 import { 
   Home as HomeIcon, 
   BookOpen, 
@@ -24,7 +26,15 @@ import {
   ArrowRight,
   MessageSquare,
   User,
-  Filter
+  Filter,
+  Moon,
+  Sun,
+  LogOut,
+  LogIn,
+  ShieldCheck,
+  LayoutDashboard,
+  Bell,
+  AlertCircle
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -38,10 +48,109 @@ import {
   onSnapshot,
   serverTimestamp,
   writeBatch,
-  doc
+  doc,
+  setDoc,
+  getDocFromServer
 } from 'firebase/firestore';
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut, 
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  User as FirebaseUser
+} from 'firebase/auth';
 import { GoogleGenAI } from "@google/genai";
 import { db, auth } from './firebase';
+
+// --- Contexts ---
+const ThemeContext = createContext<{ theme: 'light' | 'dark', toggleTheme: () => void }>({
+  theme: 'dark',
+  toggleTheme: () => {},
+});
+
+const AuthContext = createContext<{
+  user: FirebaseUser | null;
+  loading: boolean;
+  logout: () => Promise<void>;
+}>({
+  user: null,
+  loading: true,
+  logout: async () => {},
+});
+
+const useTheme = () => useContext(ThemeContext);
+const useAuth = () => useContext(AuthContext);
+
+// --- Providers ---
+const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('theme');
+    return (saved as 'light' | 'dark') || 'dark';
+  });
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
+
+  const logout = async () => {
+    await signOut(auth);
+    toast.success('Logged out successfully');
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// --- Protected Route ---
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <RefreshCw className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
 
 enum OperationType {
   CREATE = 'create',
@@ -94,6 +203,17 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
+async function testConnection() {
+  try {
+    await getDocFromServer(doc(db, 'test', 'connection'));
+  } catch (error) {
+    if(error instanceof Error && error.message.includes('the client is offline')) {
+      console.error("Please check your Firebase configuration. ");
+    }
+  }
+}
+testConnection();
+
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: Error | null }> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
@@ -121,16 +241,16 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
       }
 
       return (
-        <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
-          <div className="max-w-md w-full p-8 rounded-2xl bg-zinc-900 border border-red-500/20 text-center space-y-6">
-            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto">
-              <X className="w-8 h-8 text-red-500" />
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <div className="max-w-md w-full p-8 rounded-2xl bg-secondary border border-destructive/20 text-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-8 h-8 text-destructive" />
             </div>
-            <h2 className="text-2xl font-bold text-white">Oops!</h2>
-            <p className="text-zinc-400">{message}</p>
+            <h2 className="text-2xl font-bold text-foreground">Oops! Something went wrong</h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">{message}</p>
             <button 
               onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-300 transition-all"
+              className="px-6 py-2 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all"
             >
               Reload Page
             </button>
@@ -158,24 +278,349 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// --- Components ---
+// --- Auth Pages ---
+const LoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Domain restriction
+    if (!email.endsWith('@anurag.edu.in')) {
+      return toast.error('Only @anurag.edu.in emails are allowed');
+    }
+
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      toast.success('Welcome back!');
+      navigate(from, { replace: true });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to login');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    setLoading(true);
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      if (!user.email?.endsWith('@anurag.edu.in')) {
+        await signOut(auth);
+        return toast.error('Only @anurag.edu.in emails are allowed');
+      }
+
+      // Check if user document exists, if not create it
+      const userDoc = await getDocFromServer(doc(db, 'users', user.uid));
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          displayName: user.displayName || user.email.split('@')[0],
+          email: user.email,
+          role: 'client',
+          createdAt: serverTimestamp()
+        });
+      }
+
+      toast.success('Welcome back!');
+      navigate(from, { replace: true });
+    } catch (error: any) {
+      toast.error(error.message || 'Google login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-500/20 blur-[120px] rounded-full animate-pulse" />
+      <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-purple-500/20 blur-[120px] rounded-full animate-pulse" />
+      
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md w-full glass p-8 rounded-3xl relative z-10 shadow-2xl"
+      >
+        <div className="text-center space-y-2 mb-8">
+          <Logo className="mx-auto mb-4" iconOnly />
+          <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
+          <p className="text-muted-foreground">Login to access your community</p>
+        </div>
+
+        <div className="space-y-6">
+          <button 
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full py-3 bg-secondary text-foreground font-bold rounded-xl border border-border hover:bg-accent transition-all flex items-center justify-center space-x-3"
+          >
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+            <span>Continue with Google</span>
+          </button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium ml-1">College Email</label>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="student@anurag.edu.in"
+                required
+                className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between ml-1">
+                <label className="text-sm font-medium">Password</label>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    if (!email) return toast.error('Enter your email first');
+                    sendPasswordResetEmail(auth, email).then(() => toast.success('Reset link sent!'));
+                  }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+              />
+            </div>
+
+            <button 
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all flex items-center justify-center space-x-2"
+            >
+              {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <span>Login</span>}
+            </button>
+          </form>
+        </div>
+
+        <div className="mt-8 text-center text-sm">
+          <span className="text-muted-foreground">Don't have an account? </span>
+          <Link to="/signup" className="text-primary font-bold hover:underline">Sign up</Link>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+const SignupPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Domain restriction
+    if (!email.endsWith('@anurag.edu.in')) {
+      return toast.error('Only @anurag.edu.in emails are allowed');
+    }
+
+    setLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // Create user document in Firestore
+      const userPath = `users/${user.uid}`;
+      try {
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          displayName: name,
+          email: email,
+          role: 'client',
+          createdAt: serverTimestamp()
+        });
+      } catch (error) {
+        handleFirestoreError(error, OperationType.WRITE, userPath);
+      }
+
+      toast.success('Account created! Welcome to IgniteXT');
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      navigate('/');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to sign up');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    const provider = new GoogleAuthProvider();
+    setLoading(true);
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      if (!user.email?.endsWith('@anurag.edu.in')) {
+        await signOut(auth);
+        return toast.error('Only @anurag.edu.in emails are allowed');
+      }
+
+      // Create/Update user document in Firestore
+      const userPath = `users/${user.uid}`;
+      try {
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          displayName: user.displayName || user.email.split('@')[0],
+          email: user.email,
+          role: 'client',
+          createdAt: serverTimestamp()
+        }, { merge: true });
+      } catch (error) {
+        handleFirestoreError(error, OperationType.WRITE, userPath);
+      }
+
+      toast.success('Account created! Welcome to IgniteXT');
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      navigate('/');
+    } catch (error: any) {
+      toast.error(error.message || 'Google signup failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+      <div className="absolute top-1/4 -right-20 w-96 h-96 bg-cyan-500/20 blur-[120px] rounded-full animate-pulse" />
+      <div className="absolute bottom-1/4 -left-20 w-96 h-96 bg-blue-500/20 blur-[120px] rounded-full animate-pulse" />
+      
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md w-full glass p-8 rounded-3xl relative z-10 shadow-2xl"
+      >
+        <div className="text-center space-y-2 mb-8">
+          <Logo className="mx-auto mb-4" iconOnly />
+          <h1 className="text-3xl font-bold tracking-tight">Join IgniteXT</h1>
+          <p className="text-muted-foreground">Create your student account</p>
+        </div>
+
+        <div className="space-y-6">
+          <button 
+            onClick={handleGoogleSignup}
+            disabled={loading}
+            className="w-full py-3 bg-secondary text-foreground font-bold rounded-xl border border-border hover:bg-accent transition-all flex items-center justify-center space-x-3"
+          >
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+            <span>Continue with Google</span>
+          </button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSignup} className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-sm font-medium ml-1">Full Name</label>
+              <input 
+                type="text" 
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="John Doe"
+                required
+                className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium ml-1">College Email</label>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="student@anurag.edu.in"
+                required
+                className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+              />
+              <p className="text-[10px] text-muted-foreground ml-1">Must use @anurag.edu.in domain</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium ml-1">Password</label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+              />
+            </div>
+
+            <button 
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all flex items-center justify-center space-x-2"
+            >
+              {loading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <span>Create Account</span>}
+            </button>
+          </form>
+        </div>
+
+        <div className="mt-8 text-center text-sm">
+          <span className="text-muted-foreground">Already have an account? </span>
+          <Link to="/login" className="text-primary font-bold hover:underline">Login</Link>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 const Logo = ({ className = "w-10 h-10", iconOnly = false }: { className?: string, iconOnly?: boolean }) => (
   <div className="flex items-center space-x-3 group">
-    <div className={cn("bg-zinc-900 border border-white/10 rounded-xl flex items-center justify-center group-hover:border-yellow-400/50 transition-all duration-500 relative overflow-hidden", className)}>
-      <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-      <svg viewBox="0 0 24 24" className="w-6 h-6 text-yellow-400 fill-none stroke-current stroke-[1.5] relative z-10" xmlns="http://www.w3.org/2000/svg">
-        <path d="M9 18h6M10 21h4M12 15v3" strokeLinecap="round" />
-        <path d="M12 3c-3.5 0-6 2.5-6 5.5 0 2 1 3.5 2.5 4.5.5.3.5.7.5 1.2v.8h6v-.8c0-.5 0-.9.5-1.2 1.5-1 2.5-2.5 2.5-4.5 0-3-2.5-5.5-6-5.5z" strokeLinecap="round" />
-        <path d="M12 5v6M9 8h6" strokeLinecap="round" opacity="0.3" />
-        <path d="M12 3c-1 0-2 .5-2 1.5s1 1.5 2 1.5 2 .5 2 1.5-1 1.5-2 1.5" strokeLinecap="round" />
-      </svg>
+    <div className={cn("bg-background border border-border rounded-xl flex items-center justify-center group-hover:border-primary/50 transition-all duration-500 relative overflow-hidden shadow-sm", className)}>
+      <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <Zap className="w-5 h-5 text-primary relative z-10 group-hover:scale-110 transition-transform" />
     </div>
     {!iconOnly && (
       <div className="flex flex-col">
-        <span className="text-xl font-bold tracking-tight text-white leading-none">
-          Ignite<span className="text-yellow-400">XT</span>
+        <span className="text-xl font-bold tracking-tight text-foreground leading-none">
+          Ignite<span className="text-primary">XT</span>
         </span>
-        <span className="text-[7px] font-bold tracking-[0.25em] text-zinc-500 uppercase mt-1">
+        <span className="text-[7px] font-bold tracking-[0.25em] text-muted-foreground uppercase mt-1">
           Student Community
         </span>
       </div>
@@ -185,12 +630,14 @@ const Logo = ({ className = "w-10 h-10", iconOnly = false }: { className?: strin
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
   const location = useLocation();
 
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
-    { name: 'Notes', path: '/notes' },
+    { name: 'Resources', path: '/notes' },
     { name: 'Events', path: '/events' },
     { name: 'Contact', path: '/contact' },
   ];
@@ -208,113 +655,139 @@ const Navbar = () => {
   }, [isOpen]);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[100] glass border-b border-white/5">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" onClick={() => setIsOpen(false)}>
+    <nav className="fixed top-0 left-0 right-0 z-50 px-4 py-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="glass rounded-2xl px-6 py-3 flex items-center justify-between shadow-xl shadow-black/5">
+          <Link to="/" className="flex items-center" onClick={() => setIsOpen(false)}>
             <Logo />
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.path}
                 className={cn(
-                  "px-4 py-2 text-sm font-medium transition-all duration-300 rounded-lg relative group",
-                  location.pathname === link.path 
-                    ? "text-yellow-400" 
-                    : "text-zinc-400 hover:text-zinc-100"
+                  "text-sm font-medium transition-all relative group",
+                  location.pathname === link.path ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 {link.name}
                 {location.pathname === link.path && (
                   <motion.div 
                     layoutId="nav-underline"
-                    className="absolute bottom-0 left-4 right-4 h-0.5 bg-yellow-400 rounded-full"
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
                   />
                 )}
-                <div className="absolute inset-0 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
               </Link>
             ))}
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 text-zinc-400 hover:text-yellow-400 transition-colors relative z-[110]"
-              aria-label="Toggle Menu"
+          <div className="hidden md:flex items-center space-x-4">
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-xl bg-secondary text-secondary-foreground hover:bg-accent transition-all"
             >
-              <div className="w-6 h-6 flex flex-col justify-center items-center space-y-1.5">
-                <motion.span 
-                  animate={isOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
-                  className="w-6 h-0.5 bg-current rounded-full block transition-transform"
-                />
-                <motion.span 
-                  animate={isOpen ? { opacity: 0 } : { opacity: 1 }}
-                  className="w-6 h-0.5 bg-current rounded-full block transition-opacity"
-                />
-                <motion.span 
-                  animate={isOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
-                  className="w-6 h-0.5 bg-current rounded-full block transition-transform"
-                />
+              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            </button>
+
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <Link to="/dashboard" className="p-2 rounded-xl bg-secondary text-secondary-foreground hover:bg-accent transition-all">
+                  <LayoutDashboard className="w-5 h-5" />
+                </Link>
+                <button 
+                  onClick={logout}
+                  className="px-4 py-2 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all flex items-center space-x-2 shadow-lg shadow-primary/20"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Logout</span>
+                </button>
               </div>
+            ) : (
+              <Link 
+                to="/login"
+                className="px-6 py-2 bg-primary text-primary-foreground text-sm font-bold rounded-xl hover:opacity-90 transition-all flex items-center space-x-2 shadow-lg shadow-primary/20"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Login</span>
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile Toggle */}
+          <div className="md:hidden flex items-center space-x-4">
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-xl bg-secondary text-secondary-foreground"
+            >
+              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            </button>
+            <button 
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-2 rounded-xl bg-primary text-primary-foreground"
+            >
+              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Nav Overlay */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[105] bg-zinc-950/95 backdrop-blur-xl md:hidden flex flex-col items-center justify-center"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-40 md:hidden pt-24 px-4"
           >
-            <div className="flex flex-col items-center space-y-8">
-              {navLinks.map((link, i) => (
-                <motion.div
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-xl" onClick={() => setIsOpen(false)} />
+            <div className="relative glass rounded-3xl p-8 space-y-6 shadow-2xl">
+              {navLinks.map((link) => (
+                <Link
                   key={link.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
+                  to={link.path}
+                  onClick={() => setIsOpen(false)}
+                  className={cn(
+                    "block text-2xl font-bold transition-all",
+                    location.pathname === link.path ? "text-primary" : "text-muted-foreground"
+                  )}
                 >
-                  <Link
-                    to={link.path}
-                    onClick={() => setIsOpen(false)}
-                    className={cn(
-                      "text-3xl font-bold transition-colors",
-                      location.pathname === link.path 
-                        ? "text-yellow-400" 
-                        : "text-zinc-500 hover:text-white"
-                    )}
-                  >
-                    {link.name}
-                  </Link>
-                </motion.div>
+                  {link.name}
+                </Link>
               ))}
+              <div className="pt-6 border-t border-border flex flex-col space-y-4">
+                {user ? (
+                  <>
+                    <Link 
+                      to="/dashboard" 
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center space-x-3 text-lg font-bold text-foreground"
+                    >
+                      <LayoutDashboard className="w-6 h-6" />
+                      <span>Dashboard</span>
+                    </Link>
+                    <button 
+                      onClick={() => { logout(); setIsOpen(false); }}
+                      className="flex items-center space-x-3 text-lg font-bold text-destructive"
+                    >
+                      <LogOut className="w-6 h-6" />
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link 
+                    to="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full py-4 bg-primary text-primary-foreground text-center font-bold rounded-2xl shadow-lg shadow-primary/20"
+                  >
+                    Login to IgniteXT
+                  </Link>
+                )}
+              </div>
             </div>
-            
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="absolute bottom-12 flex space-x-6"
-            >
-              <a href="https://www.instagram.com/ignite.xt/" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-yellow-400 transition-colors">
-                <Instagram className="w-6 h-6" />
-              </a>
-              <a href="https://github.com/ignitext" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-yellow-400 transition-colors">
-                <Github className="w-6 h-6" />
-              </a>
-              <a href="mailto:skmdsadiq1607@gmail.com" className="text-zinc-500 hover:text-yellow-400 transition-colors">
-                <Mail className="w-6 h-6" />
-              </a>
-            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -323,49 +796,49 @@ const Navbar = () => {
 };
 
 const Footer = () => (
-  <footer className="bg-zinc-950 border-t border-white/5 py-24">
+  <footer className="bg-background border-t border-border py-24">
     <div className="max-w-7xl mx-auto px-4 md:px-8">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-24">
         <div className="col-span-1 md:col-span-2 space-y-6">
           <Link to="/">
             <Logo className="w-8 h-8" />
           </Link>
-          <p className="text-zinc-400 max-w-sm text-sm leading-relaxed">
+          <p className="text-muted-foreground max-w-sm text-sm leading-relaxed">
             The ultimate student community for Anurag University. Empowering students with structured academic resources, events, and a collaborative ecosystem.
           </p>
           <div className="flex space-x-4">
-            <a href="https://github.com/ignitext" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg border border-white/5 flex items-center justify-center text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/50 transition-all duration-300">
+            <a href="https://github.com/ignitext" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300">
               <Github className="w-4 h-4" />
             </a>
-            <a href="https://www.instagram.com/ignite.xt/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg border border-white/5 flex items-center justify-center text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/50 transition-all duration-300">
+            <a href="https://www.instagram.com/ignite.xt/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300">
               <Instagram className="w-4 h-4" />
             </a>
-            <a href="https://www.linkedin.com/company/ignitext/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg border border-white/5 flex items-center justify-center text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/50 transition-all duration-300">
+            <a href="https://www.linkedin.com/company/ignitext/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300">
               <Linkedin className="w-4 h-4" />
             </a>
-            <a href="#" className="w-9 h-9 rounded-lg border border-white/5 flex items-center justify-center text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/50 transition-all duration-300">
+            <a href="#" className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300">
               <Twitter className="w-4 h-4" />
             </a>
           </div>
         </div>
         <div>
-          <h4 className="text-zinc-100 font-semibold mb-6 text-sm">Quick Links</h4>
+          <h4 className="text-foreground font-semibold mb-6 text-sm">Quick Links</h4>
           <ul className="space-y-3">
             {['Notes', 'Events', 'About'].map((item) => (
               <li key={item}>
-                <Link to={`/${item.toLowerCase()}`} className="text-zinc-400 hover:text-yellow-400 text-sm transition-colors">{item}</Link>
+                <Link to={`/${item.toLowerCase()}`} className="text-muted-foreground hover:text-primary text-sm transition-colors">{item}</Link>
               </li>
             ))}
           </ul>
         </div>
         <div>
-          <h4 className="text-zinc-100 font-semibold mb-6 text-sm">Support</h4>
+          <h4 className="text-foreground font-semibold mb-6 text-sm">Support</h4>
           <ul className="space-y-3">
             {['Contact', 'Privacy Policy', 'Terms of Service', 'FAQ'].map((item) => (
               <li key={item}>
                 <Link 
                   to={item === 'Contact' ? '/contact' : `/${item.toLowerCase().replace(/ /g, '-')}`} 
-                  className="text-zinc-400 hover:text-yellow-400 text-sm transition-colors"
+                  className="text-muted-foreground hover:text-primary text-sm transition-colors"
                 >
                   {item}
                 </Link>
@@ -374,13 +847,13 @@ const Footer = () => (
           </ul>
         </div>
       </div>
-      <div className="border-t border-white/5 pt-12 flex flex-col items-center text-center space-y-6">
-        <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">&copy; 2026 IgniteXT Student Community. All rights reserved.</p>
+      <div className="border-t border-border pt-12 flex flex-col items-center text-center space-y-6">
+        <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">&copy; 2026 IgniteXT Student Community. All rights reserved.</p>
         <div className="flex flex-col items-center space-y-3">
-          <p className="text-zinc-400 text-xs font-medium">
-            Made with ❤️ by <span className="text-yellow-400">IgniteXT Technical Team</span>
+          <p className="text-muted-foreground text-xs font-medium">
+            Made with ❤️ by <span className="text-primary">IgniteXT Technical Team</span>
           </p>
-          <p className="text-zinc-600 text-[10px] tracking-[0.2em] uppercase font-bold">
+          <p className="text-muted-foreground/50 text-[10px] tracking-[0.2em] uppercase font-bold">
             Sadiq | Bharath | Mrudhula | Santhoshini | Rohit | Fathima
           </p>
         </div>
@@ -394,9 +867,9 @@ const Home = () => {
   return (
     <div className="pt-16">
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-zinc-950 bg-grid-pattern py-24">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/50 to-zinc-950" />
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(234,179,8,0.03),transparent_70%)]" />
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background bg-grid-pattern py-24">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background" />
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary)/0.03),transparent_70%)]" />
         
         <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10 text-center">
           <motion.div
@@ -409,29 +882,29 @@ const Home = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] hover:border-yellow-400/30 hover:text-yellow-400 transition-colors cursor-default"
+              className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-border bg-secondary/50 text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] hover:border-primary/30 hover:text-primary transition-colors cursor-default"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>Anurag University's Premier Tech Hub</span>
             </motion.div>
             
-            <h1 className="text-5xl md:text-8xl font-black tracking-tight leading-[1.1] text-white">
-              <span className="text-yellow-400">IgniteXT</span> <br className="md:hidden" /> <span className="text-white/90">x AnuragU</span>
+            <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-[1.1] text-foreground">
+              <span className="text-primary">IgniteXT</span> <br className="md:hidden" /> <span className="text-foreground/90">x AnuragU</span>
             </h1>
             
-            <p className="text-base md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-medium">
+            <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed font-medium">
               The ultimate student-led resource hub for Anurag University. Empowering the next generation of innovators.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Link to="/events" className="group px-8 py-4 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-300 transition-all duration-300 w-full sm:w-auto flex items-center justify-center space-x-2">
+                <Link to="/events" className="group px-8 py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all duration-300 w-full sm:w-auto flex items-center justify-center space-x-2 shadow-lg shadow-primary/20">
                   <span>Explore Events</span>
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </motion.div>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Link to="/notes" className="px-8 py-4 bg-zinc-900 text-white font-bold rounded-xl border border-white/10 hover:border-white/20 transition-all duration-300 w-full sm:w-auto">
+                <Link to="/notes" className="px-8 py-4 bg-secondary text-secondary-foreground font-bold rounded-xl border border-border hover:bg-accent transition-all duration-300 w-full sm:w-auto">
                   Get Resources
                 </Link>
               </motion.div>
@@ -440,22 +913,20 @@ const Home = () => {
         </div>
       </section>
 
-
-
       {/* Communities Section */}
-      <section className="py-24 bg-zinc-950 border-t border-white/5 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-r from-yellow-400/[0.03] via-transparent to-yellow-400/[0.03]" />
+      <section className="py-24 bg-background border-t border-border relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-r from-primary/[0.03] via-transparent to-primary/[0.03]" />
         <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-12">
             <div className="flex-1 space-y-6">
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-yellow-400/10 text-yellow-400 text-[10px] font-bold uppercase tracking-widest">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest">
                 <Users className="w-3 h-3" />
                 <span>Join the Community</span>
               </div>
-              <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
-                Hello <span className="text-yellow-400">Ignitians!</span> 🌟
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+                Hello <span className="text-primary">Ignitians!</span> 🌟
               </h2>
-              <p className="text-zinc-400 text-sm md:text-base leading-relaxed max-w-xl">
+              <p className="text-muted-foreground text-sm md:text-base leading-relaxed max-w-xl">
                 We've created separate department-wise IgniteXT Communities so you can access notes, resources, workshops, contests, career guidance, and event updates.
               </p>
               <div className="pt-4">
@@ -463,9 +934,9 @@ const Home = () => {
                   href="https://whatsapp.com/channel/0029VbAfiQzD38CarXrTNj1g" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="inline-flex items-center space-x-3 px-6 py-3 bg-zinc-900 text-white rounded-xl border border-white/5 hover:border-yellow-400/50 transition-all font-bold text-sm"
+                  className="inline-flex items-center space-x-3 px-6 py-3 bg-secondary text-foreground rounded-xl border border-border hover:border-primary/50 transition-all font-bold text-sm"
                 >
-                  <MessageSquare className="w-4 h-4 text-yellow-400" />
+                  <MessageSquare className="w-4 h-4 text-primary" />
                   <span>Official Announcements Channel</span>
                 </a>
               </div>
@@ -484,14 +955,14 @@ const Home = () => {
                   href={dept.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-4 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-yellow-400/30 hover:bg-zinc-900 transition-all flex items-center space-x-4 group"
+                  className="p-4 rounded-xl bg-secondary/50 border border-border hover:border-primary/30 hover:bg-secondary transition-all flex items-center space-x-4 group"
                 >
                   <span className="text-xl">{dept.icon}</span>
                   <div className="flex-1">
-                    <h4 className="text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">{dept.name}</h4>
-                    <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">Join Group</p>
+                    <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{dept.name}</h4>
+                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Join Group</p>
                   </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-zinc-600 group-hover:text-yellow-400 transition-colors" />
+                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
                 </a>
               ))}
             </div>
@@ -499,16 +970,53 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Founder Recognition Section */}
+      <section className="py-24 bg-background relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="p-8 md:p-16 rounded-[2.5rem] bg-primary/5 border border-primary/10 relative overflow-hidden text-center space-y-8"
+          >
+            <div className="absolute top-0 right-0 p-12 opacity-[0.03]">
+              <Sparkles className="w-64 h-64 text-primary" />
+            </div>
+            <div className="space-y-4 relative z-10">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest">
+                <Zap className="w-3 h-3" />
+                <span>Founder Recognition</span>
+              </div>
+              <h2 className="text-3xl md:text-5xl font-bold text-foreground tracking-tight">
+                Special thanks to our <span className="text-primary">Founder</span>
+              </h2>
+              <div className="flex flex-col items-center space-y-4 pt-4">
+                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center text-primary border-4 border-background shadow-xl">
+                  <User className="w-12 h-12" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-bold text-foreground">Akshath Sugandh</h3>
+                  <p className="text-muted-foreground font-medium">Visionary behind IgniteXT</p>
+                </div>
+                <p className="text-muted-foreground text-sm md:text-base max-w-2xl mx-auto leading-relaxed italic">
+                  "IgniteXT was born from a vision to create a collaborative space where every student at Anurag University could find the resources and support they need to succeed. Thank you for being part of this journey."
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Technical Team Thanks Section */}
-      <section className="py-24 bg-zinc-950 border-t border-white/5 relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent" />
+      <section className="py-24 bg-background border-t border-border relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="text-center space-y-4 mb-16">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Recognition</span>
-            <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
-              Special Thanks to our <span className="text-yellow-400">Technical Team</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Recognition</span>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+              Special Thanks to our <span className="text-primary">Technical Team</span>
             </h2>
-            <p className="text-zinc-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+            <p className="text-muted-foreground text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
               The dedicated minds behind the IgniteXT digital infrastructure and platform development.
             </p>
           </div>
@@ -529,13 +1037,13 @@ const Home = () => {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
                 whileHover={{ y: -5 }}
-                className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 text-center space-y-3 group hover:border-yellow-400/20 hover:bg-zinc-900/60 transition-all duration-500"
+                className="p-6 rounded-2xl bg-secondary/40 border border-border text-center space-y-3 group hover:border-primary/20 hover:bg-secondary/60 transition-all duration-500"
               >
-                <div className="w-10 h-10 rounded-xl bg-yellow-400/5 flex items-center justify-center text-yellow-400 mx-auto mb-2 group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary mx-auto mb-2 group-hover:scale-110 transition-transform">
                   <User className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">{member.name}</h4>
-                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">{member.role}</p>
+                <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{member.name}</h4>
+                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">{member.role}</p>
               </motion.div>
             ))}
           </div>
@@ -543,7 +1051,7 @@ const Home = () => {
       </section>
 
       {/* Quick Access Grid */}
-      <section className="py-24 bg-zinc-950 relative">
+      <section className="py-24 bg-background relative">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
@@ -556,14 +1064,14 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="group p-8 rounded-2xl bg-zinc-900 border border-white/5 card-hover"
+                className="group p-8 rounded-2xl bg-secondary border border-border card-hover"
               >
-                <div className="w-12 h-12 rounded-xl bg-yellow-400/10 flex items-center justify-center mb-6 group-hover:bg-yellow-400 group-hover:text-black transition-all duration-300">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
                   <card.icon className="w-5 h-5" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">{card.title}</h3>
-                <p className="text-zinc-400 text-sm mb-8 leading-relaxed">{card.desc}</p>
-                <Link to={card.path} className="inline-flex items-center text-sm font-bold text-yellow-400 group-hover:translate-x-1 transition-transform">
+                <h3 className="text-xl font-semibold text-foreground mb-3">{card.title}</h3>
+                <p className="text-muted-foreground text-sm mb-8 leading-relaxed">{card.desc}</p>
+                <Link to={card.path} className="inline-flex items-center text-sm font-bold text-primary group-hover:translate-x-1 transition-transform">
                   Get Started <ChevronRight className="w-4 h-4 ml-1" />
                 </Link>
               </motion.div>
@@ -618,32 +1126,32 @@ const About = () => {
   const categories = ["Leads", "Department Leads", "Technical Team", "Operations & Management", "Events & Outreach", "Content & Communication", "Design & Media"];
 
   return (
-    <div className="pt-24 pb-24 bg-zinc-950 min-h-screen">
+    <div className="pt-24 pb-24 bg-background min-h-screen">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         {/* About IgniteXT Section */}
         <div className="mb-24 relative">
-          <div className="absolute -top-24 -left-24 w-96 h-96 bg-yellow-400/10 blur-[120px] rounded-full" />
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/10 blur-[120px] rounded-full" />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="max-w-3xl space-y-6 relative z-10"
           >
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Our Story</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Our Story</span>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
-              About <span className="text-yellow-400">IgniteXT</span> <span className="text-white">x AnuragU</span>
+              About <span className="text-primary">IgniteXT</span> <span className="text-foreground">x AnuragU</span>
             </h1>
-            <p className="text-base md:text-lg text-zinc-400 leading-relaxed">
+            <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
               IgniteXT is more than just a resource hub; it's a vibrant student-led ecosystem at Anurag University. Our mission is to bridge the gap between academic theory and practical innovation by providing students with the tools, community, and support they need to excel.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8">
-              <div className="p-6 rounded-2xl bg-zinc-900 border border-white/5 space-y-3">
-                <h3 className="text-lg font-semibold text-white">Our Mission</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">To empower every student at Anurag University with high-quality academic resources and a collaborative platform for growth.</p>
+              <div className="p-6 rounded-2xl bg-secondary/50 border border-border space-y-3">
+                <h3 className="text-lg font-semibold text-foreground">Our Mission</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">To empower every student at Anurag University with high-quality academic resources and a collaborative platform for growth.</p>
               </div>
-              <div className="p-6 rounded-2xl bg-zinc-900 border border-white/5 space-y-3">
-                <h3 className="text-lg font-semibold text-white">Our Vision</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">To become the central hub for innovation and student excellence, fostering the next generation of tech leaders.</p>
+              <div className="p-6 rounded-2xl bg-secondary/50 border border-border space-y-3">
+                <h3 className="text-lg font-semibold text-foreground">Our Vision</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">To become the central hub for innovation and student excellence, fostering the next generation of tech leaders.</p>
               </div>
             </div>
           </motion.div>
@@ -652,16 +1160,16 @@ const About = () => {
         {/* Team Section */}
         <div className="space-y-16">
           <div className="space-y-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Meet the Team</h2>
-            <p className="text-zinc-400 text-sm max-w-2xl leading-relaxed">The dedicated students working behind the scenes to make IgniteXT a reality.</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">Meet the Team</h2>
+            <p className="text-muted-foreground text-sm max-w-2xl leading-relaxed">The dedicated students working behind the scenes to make IgniteXT a reality.</p>
           </div>
 
           {categories.map((cat) => (
             <div key={cat} className="space-y-8 relative">
-              <div className="absolute -left-12 top-1/2 -translate-y-1/2 w-48 h-48 bg-yellow-400/[0.02] blur-[80px] rounded-full pointer-events-none" />
+              <div className="absolute -left-12 top-1/2 -translate-y-1/2 w-48 h-48 bg-primary/[0.02] blur-[80px] rounded-full pointer-events-none" />
               <div className="flex items-center space-x-4 relative z-10">
-                <h3 className="text-xl font-semibold text-white whitespace-nowrap">{cat}</h3>
-                <div className="h-px bg-white/5 flex-1" />
+                <h3 className="text-xl font-semibold text-foreground whitespace-nowrap">{cat}</h3>
+                <div className="h-px bg-border flex-1" />
               </div>
               
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 relative z-10">
@@ -672,29 +1180,29 @@ const About = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.05 }}
-                    className="group p-4 rounded-xl bg-zinc-900/50 border border-white/5 card-hover flex flex-col"
+                    className="group p-4 rounded-xl bg-secondary/50 border border-border card-hover flex flex-col"
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-yellow-400/10 flex items-center justify-center text-yellow-400 group-hover:bg-yellow-400 group-hover:text-black transition-all">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
                         <Users className="w-4 h-4" />
                       </div>
-                      <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-zinc-500">{member.dept}</span>
+                      <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{member.dept}</span>
                     </div>
-                    <h4 className="text-sm font-bold text-white mb-0.5">{member.name}</h4>
-                    <p className="text-[10px] font-medium text-yellow-400 mb-2">{member.role}</p>
+                    <h4 className="text-sm font-bold text-foreground mb-0.5">{member.name}</h4>
+                    <p className="text-[10px] font-medium text-primary mb-2">{member.role}</p>
                     {member.bio && (
-                      <p className="text-[10px] text-zinc-400 leading-relaxed line-clamp-3 mb-3 italic">"{member.bio}"</p>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-3 mb-3 italic">"{member.bio}"</p>
                     )}
-                    <div className="mt-auto pt-3 flex items-center justify-between border-t border-white/5">
-                      <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-zinc-500">{member.year} Year</span>
+                    <div className="mt-auto pt-3 flex items-center justify-between border-t border-border">
+                      <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-muted-foreground">{member.year} Year</span>
                       <div className="flex space-x-1.5">
-                        <Linkedin className="w-3 h-3 text-zinc-600 hover:text-yellow-400 cursor-pointer transition-colors" />
+                        <Linkedin className="w-3 h-3 text-muted-foreground hover:text-primary cursor-pointer transition-colors" />
                         {member.github ? (
                           <a href={member.github} target="_blank" rel="noopener noreferrer">
-                            <Github className="w-3 h-3 text-zinc-600 hover:text-yellow-400 transition-colors" />
+                            <Github className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors" />
                           </a>
                         ) : (
-                          <Github className="w-3 h-3 text-zinc-600 hover:text-yellow-400 cursor-pointer transition-colors" />
+                          <Github className="w-3 h-3 text-muted-foreground hover:text-primary cursor-pointer transition-colors" />
                         )}
                       </div>
                     </div>
@@ -708,9 +1216,9 @@ const About = () => {
         {/* Core Values Section */}
         <div className="mt-32 space-y-16">
           <div className="text-center space-y-4">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Our Foundation</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Our Core Values</h2>
-            <p className="text-zinc-400 text-sm max-w-xl mx-auto leading-relaxed">The principles that guide our community and drive our innovation.</p>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Our Foundation</span>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">Our Core Values</h2>
+            <p className="text-muted-foreground text-sm max-w-xl mx-auto leading-relaxed">The principles that guide our community and drive our innovation.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -724,14 +1232,14 @@ const About = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 space-y-6 group hover:border-yellow-400/20 transition-all duration-500"
+                className="p-8 rounded-[2rem] bg-secondary/50 border border-border space-y-6 group hover:border-primary/20 transition-all duration-500"
               >
-                <div className="w-12 h-12 rounded-2xl bg-yellow-400/5 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition-transform duration-500">
+                <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
                   <value.icon className="w-6 h-6" />
                 </div>
                 <div className="space-y-2">
-                  <h4 className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">{value.title}</h4>
-                  <p className="text-sm text-zinc-500 leading-relaxed">{value.desc}</p>
+                  <h4 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">{value.title}</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{value.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -743,19 +1251,19 @@ const About = () => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-32 p-12 md:p-20 rounded-[3rem] bg-zinc-900 border border-white/5 relative overflow-hidden text-center space-y-10 group"
+          className="mt-32 p-12 md:p-20 rounded-[3rem] bg-secondary border border-border relative overflow-hidden text-center space-y-10 group"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/[0.02] via-transparent to-transparent opacity-50" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-transparent opacity-50" />
           <div className="relative z-10 space-y-8">
             <div className="space-y-4">
-              <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-tight">
-                Ready to <span className="text-yellow-400">Ignite</span> <br className="hidden md:block" /> your journey?
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight leading-tight">
+                Ready to <span className="text-primary">Ignite</span> <br className="hidden md:block" /> your journey?
               </h2>
-              <p className="text-zinc-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+              <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
                 Join the most active student community at Anurag University. Access resources, build projects, and grow with us.
               </p>
             </div>
-            <Link to="/contact" className="inline-flex items-center px-10 py-4 bg-yellow-400 text-black font-bold rounded-2xl hover:bg-yellow-300 transition-all shadow-2xl shadow-yellow-400/20 hover:scale-105 active:scale-95">
+            <Link to="/contact" className="inline-flex items-center px-10 py-4 bg-primary text-primary-foreground font-bold rounded-2xl hover:opacity-90 transition-all shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95">
               Join the Community
             </Link>
           </div>
@@ -774,8 +1282,27 @@ const ResourcesPage = () => {
   });
 
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [dbResources, setDbResources] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, 'resources'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setDbResources(docs);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'resources');
+    });
+    return unsubscribe;
+  }, []);
 
   const getExactLink = () => {
+    // Check Firestore first
+    const found = dbResources.find(r => r.category === filter.dept && r.year === filter.year);
+    if (found) return found.link;
+
+    // Fallback to hardcoded mapping
     const mapping: any = {
       'CSE': {
         '1st': '1BN39Wl5bTT9YQE_BB2tczWuHGluriXzr',
@@ -830,7 +1357,7 @@ const ResourcesPage = () => {
   const FilterContent = () => (
     <>
       <div className="space-y-4">
-        <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Department</label>
+        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Department</label>
         <div className="space-y-1">
           {depts.map(dept => (
             <button
@@ -842,8 +1369,8 @@ const ResourcesPage = () => {
               className={cn(
                 "w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all duration-300",
                 filter.dept === dept 
-                  ? "bg-yellow-400 text-black font-bold shadow-lg shadow-yellow-400/10" 
-                  : "text-zinc-400 hover:bg-white/5 hover:text-white"
+                  ? "bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/10" 
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
               )}
             >
               {dept}
@@ -853,7 +1380,7 @@ const ResourcesPage = () => {
       </div>
 
       <div className="space-y-4">
-        <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Year</label>
+        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Year</label>
         <div className="grid grid-cols-3 gap-2">
           {years.map(year => (
             <button
@@ -865,8 +1392,8 @@ const ResourcesPage = () => {
               className={cn(
                 "px-3 py-2.5 rounded-xl text-xs transition-all duration-300 border",
                 filter.year === year 
-                  ? "bg-yellow-400 border-yellow-400 text-black font-bold shadow-lg shadow-yellow-400/10" 
-                  : "border-white/5 text-zinc-400 hover:border-white/20 hover:text-white bg-white/[0.02]"
+                  ? "bg-primary border-primary text-primary-foreground font-bold shadow-lg shadow-primary/10" 
+                  : "border-border text-muted-foreground hover:border-primary/20 hover:text-foreground bg-secondary/50"
               )}
             >
               {year}
@@ -878,23 +1405,23 @@ const ResourcesPage = () => {
   );
 
   return (
-    <div className="pt-20 min-h-screen bg-zinc-950 flex flex-col md:flex-row relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-400/[0.01] via-transparent to-transparent pointer-events-none" />
+    <div className="pt-20 min-h-screen bg-background flex flex-col md:flex-row relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/[0.01] via-transparent to-transparent pointer-events-none" />
       
       {/* Mobile Filter Toggle */}
-      <div className="md:hidden sticky top-20 z-30 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 p-4 flex items-center justify-between">
+      <div className="md:hidden sticky top-20 z-30 bg-background/80 backdrop-blur-xl border-b border-border p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-yellow-400/10 flex items-center justify-center text-yellow-400">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
             <Filter className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Active Filter</p>
-            <p className="text-xs font-bold text-white">{filter.dept} • {filter.year} Year</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Active Filter</p>
+            <p className="text-xs font-bold text-foreground">{filter.dept} • {filter.year} Year</p>
           </div>
         </div>
         <button 
           onClick={() => setIsMobileFilterOpen(true)}
-          className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 transition-all"
+          className="px-4 py-2 rounded-xl bg-secondary border border-border text-xs font-bold text-foreground hover:bg-accent transition-all"
         >
           Change
         </button>
@@ -916,14 +1443,14 @@ const ResourcesPage = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-x-0 bottom-0 z-50 bg-zinc-900 border-t border-white/10 rounded-t-[2rem] p-8 md:hidden max-h-[80vh] overflow-y-auto"
+              className="fixed inset-x-0 bottom-0 z-50 bg-secondary border-t border-border rounded-t-[2rem] p-8 md:hidden max-h-[80vh] overflow-y-auto"
             >
-              <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8" />
+              <div className="w-12 h-1.5 bg-border rounded-full mx-auto mb-8" />
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold text-white">Filter Resources</h3>
+                <h3 className="text-xl font-bold text-foreground">Filter Resources</h3>
                 <button 
                   onClick={() => setIsMobileFilterOpen(false)}
-                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400"
+                  className="w-10 h-10 rounded-full bg-background/50 flex items-center justify-center text-muted-foreground"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -937,27 +1464,27 @@ const ResourcesPage = () => {
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-72 flex-col border-r border-white/5 p-8 space-y-10 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto">
+      <aside className="hidden md:flex w-72 flex-col border-r border-border p-8 space-y-10 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto">
         <FilterContent />
 
-        <div className="space-y-4 pt-6 border-t border-white/5">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Quick Actions</label>
+        <div className="space-y-4 pt-6 border-t border-border">
+          <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Quick Actions</label>
           <a 
             href={getExactLink() || '#'} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center justify-between p-4 rounded-2xl bg-yellow-400/5 border border-yellow-400/10 group hover:bg-yellow-400/10 hover:border-yellow-400/30 transition-all duration-300"
+            className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10 group hover:bg-primary/10 hover:border-primary/30 transition-all duration-300"
           >
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-yellow-400/10 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                 <ExternalLink className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-white">Open Drive</span>
-                <span className="text-[10px] text-zinc-500">New Tab</span>
+                <span className="text-xs font-bold text-foreground">Open Drive</span>
+                <span className="text-[10px] text-muted-foreground">New Tab</span>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-yellow-400 group-hover:translate-x-1 transition-all" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
           </a>
         </div>
       </aside>
@@ -966,13 +1493,13 @@ const ResourcesPage = () => {
       <main className="flex-1 p-6 md:p-12 space-y-12">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-              <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
+            <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+              <Link to="/" className="hover:text-primary transition-colors">Home</Link>
               <ChevronRight className="w-3 h-3" />
-              <span className="text-yellow-500">Resources</span>
+              <span className="text-primary">Resources</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
-              Academic <span className="text-yellow-400">Resources</span>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+              Academic <span className="text-primary">Resources</span>
             </h1>
           </div>
         </div>
@@ -981,23 +1508,23 @@ const ResourcesPage = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-8 md:p-16 rounded-[2.5rem] bg-zinc-900 border border-white/5 relative overflow-hidden group"
+          className="p-8 md:p-16 rounded-[2.5rem] bg-secondary/50 border border-border relative overflow-hidden group"
         >
           <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700">
-            <Zap className="w-64 h-64 text-yellow-400" />
+            <Zap className="w-64 h-64 text-primary" />
           </div>
           
           <div className="relative z-10 space-y-10">
             <div className="space-y-4">
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/20">
-                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-500">Direct Drive Access</span>
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Direct Drive Access</span>
               </div>
-              <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight leading-tight">
                 {filter.dept} {filter.year} Year <br className="hidden md:block" />
-                <span className="text-yellow-400">Academic</span> Materials
+                <span className="text-primary">Academic</span> Materials
               </h2>
-              <p className="text-zinc-400 text-base md:text-lg max-w-2xl leading-relaxed">
+              <p className="text-muted-foreground text-base md:text-lg max-w-2xl leading-relaxed">
                 Access the complete repository for your current selection. This folder contains all structured notes, previous year papers, and reference materials curated by the community.
               </p>
             </div>
@@ -1009,7 +1536,7 @@ const ResourcesPage = () => {
                 href={getExactLink() || '#'} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto flex items-center justify-center space-x-3 px-10 py-5 rounded-2xl bg-yellow-400 text-black font-bold hover:bg-yellow-300 transition-all shadow-xl shadow-yellow-400/10"
+                className="w-full sm:w-auto flex items-center justify-center space-x-3 px-10 py-5 rounded-2xl bg-primary text-primary-foreground font-bold hover:opacity-90 transition-all shadow-xl shadow-primary/20"
               >
                 <ExternalLink className="w-5 h-5" />
                 <span>Open Google Drive</span>
@@ -1018,9 +1545,9 @@ const ResourcesPage = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={copyLink}
-                className="w-full sm:w-auto flex items-center justify-center space-x-3 px-10 py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 hover:border-white/20 transition-all"
+                className="w-full sm:w-auto flex items-center justify-center space-x-3 px-10 py-5 rounded-2xl bg-secondary border border-border text-foreground font-bold hover:bg-accent transition-all"
               >
-                <Zap className="w-5 h-5 text-yellow-400" />
+                <Zap className="w-5 h-5 text-primary" />
                 <span>Copy Folder Link</span>
               </motion.button>
             </div>
@@ -1039,13 +1566,13 @@ const ResourcesPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 + i * 0.1 }}
-              className="p-8 rounded-3xl bg-zinc-900/50 border border-white/5 hover:border-yellow-400/20 transition-all duration-500 group"
+              className="p-8 rounded-3xl bg-secondary/30 border border-border hover:border-primary/20 transition-all duration-500 group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-yellow-400/5 flex items-center justify-center text-yellow-400 mb-6 group-hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
                 <item.icon className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
-              <p className="text-zinc-500 text-sm leading-relaxed">{item.desc}</p>
+              <h3 className="text-lg font-bold text-foreground mb-2">{item.title}</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">{item.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -1056,18 +1583,45 @@ const ResourcesPage = () => {
 
 
 const Events = () => {
-  const events: { title: string; date: string; type: 'upcoming' | 'past'; category: string; desc: string }[] = [];
-
+  const [events, setEvents] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, 'events'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(doc => {
+        const data = doc.data();
+        // Convert Firestore timestamp to readable string if needed
+        const dateStr = data.date?.toDate?.() ? data.date.toDate().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : data.date;
+        
+        // Determine if upcoming or past
+        const eventDate = data.date?.toDate?.() ? data.date.toDate() : new Date(data.date);
+        const type = eventDate > new Date() ? 'upcoming' : 'past';
+
+        return { 
+          id: doc.id, 
+          ...data, 
+          date: dateStr,
+          type 
+        };
+      });
+      setEvents(docs);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'events');
+    });
+    return unsubscribe;
+  }, []);
 
   return (
-    <div className="pt-24 pb-24 bg-zinc-950 min-h-screen">
+    <div className="pt-24 pb-24 bg-background min-h-screen">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
           <div className="space-y-4">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Stay Updated</span>
-            <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-tight">Campus <span className="text-yellow-400">Events</span></h1>
-            <p className="text-zinc-400 text-sm max-w-xl leading-relaxed">Join us for workshops, hackathons, and community meetups designed to ignite your potential.</p>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Stay Updated</span>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight leading-tight">Campus <span className="text-primary">Events</span></h1>
+            <p className="text-muted-foreground text-sm max-w-xl leading-relaxed">Join us for workshops, hackathons, and community meetups designed to ignite your potential.</p>
           </div>
           
           <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -1075,19 +1629,19 @@ const Events = () => {
               href="https://chat.whatsapp.com/LQBXD6W3Oi9LaU30Ft9mKu" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center space-x-3 px-6 py-2.5 rounded-xl bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 font-bold text-sm hover:bg-yellow-400 hover:text-black transition-all group"
+              className="flex items-center space-x-3 px-6 py-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary font-bold text-sm hover:bg-primary hover:text-primary-foreground transition-all group"
             >
               <MessageSquare className="w-4 h-4" />
               <span>Events Community</span>
               <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100" />
             </a>
             
-            <div className="flex p-1 bg-zinc-900 rounded-xl border border-white/5">
+            <div className="flex p-1 bg-secondary rounded-xl border border-border">
               <button 
                 onClick={() => setActiveTab('upcoming')}
                 className={cn(
                   "px-6 py-2 rounded-lg text-sm font-bold transition-all",
-                  activeTab === 'upcoming' ? "bg-yellow-400 text-black shadow-lg shadow-yellow-400/20" : "text-zinc-400 hover:text-white"
+                  activeTab === 'upcoming' ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 Upcoming
@@ -1096,7 +1650,7 @@ const Events = () => {
                 onClick={() => setActiveTab('past')}
                 className={cn(
                   "px-6 py-2 rounded-lg text-sm font-bold transition-all",
-                  activeTab === 'past' ? "bg-yellow-400 text-black shadow-lg shadow-yellow-400/20" : "text-zinc-400 hover:text-white"
+                  activeTab === 'past' ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 Past
@@ -1113,22 +1667,22 @@ const Events = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="group p-8 rounded-2xl bg-zinc-900 border border-white/5 card-hover flex flex-col"
+                className="group p-8 rounded-2xl bg-secondary/50 border border-border card-hover flex flex-col"
               >
                 <div className="flex items-center justify-between mb-6">
-                  <div className="px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-[10px] font-bold text-yellow-400 uppercase tracking-[0.2em]">
+                  <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold text-primary uppercase tracking-[0.2em]">
                     {event.category}
                   </div>
-                  <div className="flex items-center space-x-2 text-zinc-500">
+                  <div className="flex items-center space-x-2 text-muted-foreground">
                     <Calendar className="w-3.5 h-3.5" />
                     <span className="text-[10px] font-bold uppercase tracking-[0.2em]">{event.date}</span>
                   </div>
                 </div>
                 
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-yellow-400 transition-colors">{event.title}</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed mb-8 flex-1">{event.desc}</p>
+                <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">{event.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-1">{event.desc}</p>
                 
-                <button className="w-full flex items-center justify-center space-x-2 py-3.5 rounded-xl bg-white/5 border border-white/10 text-sm font-bold text-white hover:bg-yellow-400 hover:text-black hover:border-yellow-400 transition-all">
+                <button className="w-full flex items-center justify-center space-x-2 py-3.5 rounded-xl bg-secondary border border-border text-sm font-bold text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all">
                   <span>{event.type === 'upcoming' ? 'Register Now' : 'View Highlights'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
@@ -1139,14 +1693,14 @@ const Events = () => {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="py-24 flex flex-col items-center justify-center text-center space-y-6 rounded-3xl bg-zinc-900/50 border border-dashed border-white/10"
+            className="py-24 flex flex-col items-center justify-center text-center space-y-6 rounded-3xl bg-secondary/30 border border-dashed border-border"
           >
-            <div className="w-20 h-20 rounded-full bg-yellow-400/5 flex items-center justify-center">
-              <Sparkles className="w-10 h-10 text-yellow-400/30" />
+            <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center">
+              <Sparkles className="w-10 h-10 text-primary/30" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-bold text-white">Stay Tuned! 🚀</h3>
-              <p className="text-zinc-500 max-w-md mx-auto">
+              <h3 className="text-2xl font-bold text-foreground">Stay Tuned! 🚀</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
                 We're currently planning some amazing {activeTab} events for the community. Check back soon or join our WhatsApp channel for instant updates.
               </p>
             </div>
@@ -1169,12 +1723,11 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
-    const path = 'messages';
+    const path = 'contacts';
     try {
       await addDoc(collection(db, path), {
         ...formData,
-        to: 'skmdsadiq1607@gmail.com',
-        timestamp: serverTimestamp()
+        createdAt: serverTimestamp()
       });
       setStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
@@ -1187,15 +1740,15 @@ const Contact = () => {
   };
 
   return (
-    <div className="pt-24 pb-24 bg-zinc-950 min-h-screen relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-yellow-400/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
+    <div className="pt-24 pb-24 bg-background min-h-screen relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
       <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8">
             <div className="space-y-4">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Connect With Us</span>
-              <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-tight">Get in <span className="text-yellow-400">Touch</span></h1>
-              <p className="text-zinc-400 text-base leading-relaxed max-w-lg">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Connect With Us</span>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight leading-tight">Get in <span className="text-primary">Touch</span></h1>
+              <p className="text-muted-foreground text-base leading-relaxed max-w-lg">
                 Have questions, suggestions, or want to contribute? We'd love to hear from you. Join the community and help us grow.
               </p>
             </div>
@@ -1212,88 +1765,88 @@ const Contact = () => {
                   href={item.link}
                   target={item.link.startsWith('http') ? "_blank" : undefined}
                   rel={item.link.startsWith('http') ? "noopener noreferrer" : undefined}
-                  className="p-6 rounded-2xl bg-zinc-900 border border-white/5 space-y-3 hover:border-yellow-400/30 transition-all group relative overflow-hidden"
+                  className="p-6 rounded-2xl bg-secondary/50 border border-border space-y-3 hover:border-primary/30 transition-all group relative overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="w-10 h-10 rounded-xl bg-yellow-400/10 flex items-center justify-center text-yellow-400 group-hover:bg-yellow-400 group-hover:text-black transition-all relative z-10">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all relative z-10">
                     <item.icon className="w-5 h-5" />
                   </div>
                   <div className="relative z-10">
-                    <h4 className="text-sm font-bold text-white">{item.title}</h4>
-                    <p className="text-xs text-zinc-500">{item.value}</p>
+                    <h4 className="text-sm font-bold text-foreground">{item.title}</h4>
+                    <p className="text-xs text-muted-foreground">{item.value}</p>
                   </div>
                 </a>
               ))}
             </div>
           </div>
 
-            <div className="p-8 md:p-10 rounded-2xl bg-zinc-900 border border-white/5 space-y-6 relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400/[0.02] to-transparent pointer-events-none" />
+            <div className="p-8 md:p-10 rounded-2xl bg-secondary/50 border border-border space-y-6 relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-primary/[0.02] to-transparent pointer-events-none" />
             <div className="space-y-2">
-              <h3 className="text-xl font-bold text-white">Send a Message</h3>
-              <p className="text-xs text-zinc-500">Fill out the form below and we'll get back to you shortly.</p>
+              <h3 className="text-xl font-bold text-foreground">Send a Message</h3>
+              <p className="text-xs text-muted-foreground">Fill out the form below and we'll get back to you shortly.</p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Name</label>
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Name</label>
                   <input 
                     required
                     type="text" 
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-yellow-400/50 transition-all" 
+                    className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all" 
                     placeholder="John Doe" 
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Email</label>
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Email</label>
                   <input 
                     required
                     type="email" 
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-yellow-400/50 transition-all" 
+                    className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all" 
                     placeholder="john@example.com" 
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Subject</label>
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Subject</label>
                 <input 
                   required
                   type="text" 
                   value={formData.subject}
                   onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                  className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-yellow-400/50 transition-all" 
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all" 
                   placeholder="How can we help?" 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Message</label>
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Message</label>
                 <textarea 
                   required
                   rows={4} 
                   value={formData.message}
                   onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  className="w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-yellow-400/50 transition-all resize-none" 
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary/50 transition-all resize-none" 
                   placeholder="Your message here..."
                 ></textarea>
               </div>
               <button 
                 disabled={status === 'loading'}
-                className="w-full py-4 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-300 transition-all shadow-lg shadow-yellow-400/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status === 'loading' ? 'Sending...' : 'Send Message'}
               </button>
               
               {status === 'success' && (
                 <div className="space-y-4">
-                  <p className="text-center text-xs text-green-400 font-medium animate-pulse">Message sent successfully! We'll get back to you soon.</p>
+                  <p className="text-center text-xs text-green-500 font-medium animate-pulse">Message sent successfully! We'll get back to you soon.</p>
                   <div className="flex justify-center">
                     <a 
                       href={`mailto:skmdsadiq1607@gmail.com?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(formData.message)}`}
-                      className="inline-flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-yellow-400 hover:text-yellow-300 transition-colors"
+                      className="inline-flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors"
                     >
                       <Mail className="w-3 h-3" />
                       <span>Open in Email Client</span>
@@ -1302,7 +1855,7 @@ const Contact = () => {
                 </div>
               )}
               {status === 'error' && (
-                <p className="text-center text-xs text-red-400 font-medium">Something went wrong. Please try again later.</p>
+                <p className="text-center text-xs text-red-500 font-medium">Something went wrong. Please try again later.</p>
               )}
             </form>
           </div>
@@ -1313,37 +1866,133 @@ const Contact = () => {
 };
 
 // --- Main App ---
+const Dashboard = () => {
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const userPath = `users/${user.uid}`;
+    const unsubscribe = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+      if (docSnap.exists()) {
+        setProfile(docSnap.data());
+      }
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, userPath);
+    });
+    return unsubscribe;
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <RefreshCw className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="pt-32 pb-24 px-4 max-w-7xl mx-auto">
+      <div className="space-y-8">
+        <div className="space-y-2">
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Student Portal</span>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+            Welcome back, <span className="text-primary">{profile?.displayName || user?.email?.split('@')[0]}</span>
+          </h1>
+          <p className="text-muted-foreground text-sm max-w-xl">
+            This is your personal IgniteXT dashboard. Here you can track your contributions, upcoming events, and personalized resources.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { label: 'Role', value: profile?.role || 'Member', icon: ShieldCheck },
+            { label: 'Email', value: user?.email, icon: Mail },
+            { label: 'Joined', value: profile?.createdAt?.toDate ? profile.createdAt.toDate().toLocaleDateString() : 'Recently', icon: Calendar }
+          ].map((item, i) => (
+            <div key={i} className="p-6 rounded-2xl bg-secondary/50 border border-border flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <item.icon className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{item.label}</p>
+                <p className="text-sm font-bold truncate max-w-[150px]">{item.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="p-12 rounded-3xl bg-secondary/30 border border-dashed border-border flex flex-col items-center justify-center text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-primary/30" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold">Premium Features Coming Soon</h3>
+            <p className="text-muted-foreground text-sm max-w-md">
+              We're building personalized resource recommendations, project collaboration tools, and a community forum just for you.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   return (
     <ErrorBoundary>
-      <Router>
-        <div className="min-h-screen bg-black text-white selection:bg-yellow-500/30 selection:text-yellow-500">
-          <Navbar />
-          <main>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/notes" element={<ResourcesPage />} />
-              <Route path="/events" element={<Events />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-of-service" element={<TermsOfService />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </Router>
+      <ThemeProvider>
+        <AuthProvider>
+          <Router>
+            <div className="min-h-screen bg-background text-foreground selection:bg-primary/30 selection:text-primary transition-colors duration-300">
+              <Navbar />
+              <main>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/about" element={<About />} />
+                  <Route 
+                    path="/notes" 
+                    element={
+                      <ProtectedRoute>
+                        <ResourcesPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route path="/events" element={<Events />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/terms-of-service" element={<TermsOfService />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/signup" element={<SignupPage />} />
+                  <Route 
+                    path="/dashboard" 
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    } 
+                  />
+                </Routes>
+              </main>
+              <Footer />
+              <Toaster position="bottom-right" />
+            </div>
+          </Router>
+        </AuthProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
 
 const FAQ = () => (
-  <div className="pt-32 pb-24 bg-zinc-950 min-h-screen">
+  <div className="pt-32 pb-24 bg-background min-h-screen">
     <div className="max-w-3xl mx-auto px-4">
       <div className="space-y-4 mb-12">
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Support Center</span>
-        <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight">Frequently Asked <span className="text-yellow-400">Questions</span></h1>
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Support Center</span>
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">Frequently Asked <span className="text-primary">Questions</span></h1>
       </div>
       <div className="space-y-6">
         {[
@@ -1358,13 +2007,13 @@ const FAQ = () => (
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.1 }}
-            className="p-8 rounded-2xl bg-zinc-900 border border-white/5 space-y-4 hover:border-yellow-400/20 transition-all"
+            className="p-8 rounded-2xl bg-secondary/50 border border-border space-y-4 hover:border-primary/20 transition-all"
           >
-            <h3 className="text-lg font-bold text-white flex items-center space-x-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
+            <h3 className="text-lg font-bold text-foreground flex items-center space-x-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
               <span>{item.q}</span>
             </h3>
-            <p className="text-zinc-400 text-sm leading-relaxed pl-4.5 border-l border-yellow-400/10">{item.a}</p>
+            <p className="text-muted-foreground text-sm leading-relaxed pl-4.5 border-l border-primary/10">{item.a}</p>
           </motion.div>
         ))}
       </div>
@@ -1373,24 +2022,24 @@ const FAQ = () => (
 );
 
 const PrivacyPolicy = () => (
-  <div className="pt-32 pb-24 bg-zinc-950 min-h-screen">
+  <div className="pt-32 pb-24 bg-background min-h-screen">
     <div className="max-w-3xl mx-auto px-4">
       <div className="space-y-4 mb-12">
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Legal</span>
-        <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight">Privacy <span className="text-yellow-400">Policy</span></h1>
-        <p className="text-zinc-500 text-xs">Last updated: March 20, 2026</p>
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Legal</span>
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">Privacy <span className="text-primary">Policy</span></h1>
+        <p className="text-muted-foreground text-xs">Last updated: March 20, 2026</p>
       </div>
-      <div className="space-y-12 text-zinc-400 text-sm leading-relaxed">
+      <div className="space-y-12 text-muted-foreground text-sm leading-relaxed">
         <section className="space-y-4">
-          <h3 className="text-xl font-bold text-white">1. Data Collection</h3>
+          <h3 className="text-xl font-bold text-foreground">1. Data Collection</h3>
           <p>At IgniteXT, we take your privacy seriously. We collect minimal data, primarily through our contact form (name, email) to respond to your inquiries. We do not use cookies for tracking or sell your data to third parties.</p>
         </section>
         <section className="space-y-4">
-          <h3 className="text-xl font-bold text-white">2. Data Usage</h3>
+          <h3 className="text-xl font-bold text-foreground">2. Data Usage</h3>
           <p>Your data is used solely for community communication and providing requested resources. We use industry-standard security measures to protect any information you share with us through our platform.</p>
         </section>
         <section className="space-y-4">
-          <h3 className="text-xl font-bold text-white">3. Security</h3>
+          <h3 className="text-xl font-bold text-foreground">3. Security</h3>
           <p>We implement a variety of security measures to maintain the safety of your personal information when you enter, submit, or access your personal information.</p>
         </section>
       </div>
@@ -1399,24 +2048,24 @@ const PrivacyPolicy = () => (
 );
 
 const TermsOfService = () => (
-  <div className="pt-32 pb-24 bg-zinc-950 min-h-screen">
+  <div className="pt-32 pb-24 bg-background min-h-screen">
     <div className="max-w-3xl mx-auto px-4">
       <div className="space-y-4 mb-12">
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Legal</span>
-        <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight">Terms of <span className="text-yellow-400">Service</span></h1>
-        <p className="text-zinc-500 text-xs">Last updated: March 20, 2026</p>
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Legal</span>
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">Terms of <span className="text-primary">Service</span></h1>
+        <p className="text-muted-foreground text-xs">Last updated: March 20, 2026</p>
       </div>
-      <div className="space-y-12 text-zinc-400 text-sm leading-relaxed">
+      <div className="space-y-12 text-muted-foreground text-sm leading-relaxed">
         <section className="space-y-4">
-          <h3 className="text-xl font-bold text-white">1. Use of Resources</h3>
+          <h3 className="text-xl font-bold text-foreground">1. Use of Resources</h3>
           <p>By using IgniteXT, you agree to use the provided academic resources for educational purposes only. Redistribution for commercial gain or misrepresentation of the materials is strictly prohibited.</p>
         </section>
         <section className="space-y-4">
-          <h3 className="text-xl font-bold text-white">2. Community Conduct</h3>
+          <h3 className="text-xl font-bold text-foreground">2. Community Conduct</h3>
           <p>Users are expected to maintain a respectful and collaborative environment. Harassment, abuse, or any form of digital misconduct will result in immediate removal from the community and its platforms.</p>
         </section>
         <section className="space-y-4">
-          <h3 className="text-xl font-bold text-white">3. Disclaimer</h3>
+          <h3 className="text-xl font-bold text-foreground">3. Disclaimer</h3>
           <p>IgniteXT is a student-led initiative. While we strive for accuracy, we are not responsible for any errors in the provided academic materials or any consequences arising from their use.</p>
         </section>
       </div>
