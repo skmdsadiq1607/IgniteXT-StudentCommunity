@@ -6,6 +6,39 @@
   --font-display: "Space Grotesk", sans-serif;
 }
 
+:root {
+  --color-zinc-950: #ffffff;
+  --color-zinc-900: #f4f4f5;
+  --color-white: #09090b;
+  --color-black: #ffffff;
+  --color-zinc-400: #52525b;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #a1a1aa;
+  --color-zinc-100: #18181b;
+}
+
+[data-theme="light"] {
+  --color-zinc-950: #ffffff;
+  --color-zinc-900: #f4f4f5;
+  --color-white: #09090b;
+  --color-black: #ffffff;
+  --color-zinc-400: #52525b;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #a1a1aa;
+  --color-zinc-100: #18181b;
+}
+
+[data-theme="dark"] {
+  --color-zinc-950: #09090b;
+  --color-zinc-900: #18181b;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-zinc-400: #a1a1aa;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #52525b;
+  --color-zinc-100: #f4f4f5;
+}
+
 @layer base {
   body {
     @apply bg-zinc-950 text-zinc-100 antialiased selection:bg-yellow-500/30 selection:text-yellow-500;

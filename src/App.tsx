@@ -24,7 +24,9 @@ import {
   ArrowRight,
   MessageSquare,
   User,
-  Filter
+  Filter,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -138,16 +140,22 @@ const Logo = ({ className = "w-10 h-10", iconOnly = false }: { className?: strin
     <div className={cn("bg-zinc-900 border border-white/10 rounded-xl flex items-center justify-center group-hover:border-yellow-400/50 transition-all duration-500 relative overflow-hidden", className)}>
       <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       <svg viewBox="0 0 24 24" className="w-6 h-6 text-yellow-400 fill-none stroke-current stroke-[1.5] relative z-10" xmlns="http://www.w3.org/2000/svg">
-        <path d="M9 18h6M10 21h4M12 15v3" strokeLinecap="round" />
-        <path d="M12 3c-3.5 0-6 2.5-6 5.5 0 2 1 3.5 2.5 4.5.5.3.5.7.5 1.2v.8h6v-.8c0-.5 0-.9.5-1.2 1.5-1 2.5-2.5 2.5-4.5 0-3-2.5-5.5-6-5.5z" strokeLinecap="round" />
-        <path d="M12 5v6M9 8h6" strokeLinecap="round" opacity="0.3" />
-        <path d="M12 3c-1 0-2 .5-2 1.5s1 1.5 2 1.5 2 .5 2 1.5-1 1.5-2 1.5" strokeLinecap="round" />
+        <g style={{ transformOrigin: 'center', transform: 'scale(0.75) translateY(2px)' }}>
+          <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 18h6" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 22h4" strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+        <path d="M12 2v2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4.5 10.5h-2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M21.5 10.5h-2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6.5 5.5l-1.5-1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M17.5 5.5l1.5-1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
     {!iconOnly && (
       <div className="flex flex-col">
         <span className="text-xl font-bold tracking-tight text-white leading-none">
-          Ignite<span className="text-yellow-400">XT</span>
+          Ignite<span className="text-yellow-400">XT</span> <span className="text-white/40 font-light">x</span> <span className="text-white/90">AnuragU</span>
         </span>
         <span className="text-[7px] font-bold tracking-[0.25em] text-zinc-500 uppercase mt-1">
           Student Community
@@ -156,6 +164,32 @@ const Logo = ({ className = "w-10 h-10", iconOnly = false }: { className?: strin
     )}
   </div>
 );
+
+const ThemeToggle = () => {
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
+  return (
+    <button
+      onClick={toggleTheme}
+      className="p-2 rounded-lg text-zinc-400 hover:text-yellow-400 hover:bg-white/5 transition-all duration-300"
+      aria-label="Toggle Theme"
+      title={theme === 'dark' ? "Switch to Light mode" : "Switch to Dark mode"}
+    >
+      {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+    </button>
+  );
+};
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -182,10 +216,14 @@ const Navbar = () => {
   }, [isOpen]);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[100] glass border-b border-white/5">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
+    <>
+      <nav className={cn(
+        "fixed top-0 left-0 right-0 z-[100] border-b transition-colors duration-300",
+        isOpen ? "bg-zinc-950 border-white/10" : "glass border-white/5"
+      )}>
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" onClick={() => setIsOpen(false)}>
+          <Link to="/" onClick={() => setIsOpen(false)} className="relative z-[110]">
             <Logo />
           </Link>
 
@@ -212,33 +250,38 @@ const Navbar = () => {
                 <div className="absolute inset-0 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
               </Link>
             ))}
+            <div className="pl-4 ml-2 border-l border-white/10">
+              <ThemeToggle />
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="md:hidden relative z-[110] flex items-center space-x-2">
+            <ThemeToggle />
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 text-zinc-400 hover:text-yellow-400 transition-colors relative z-[110]"
+              className="p-2 text-zinc-400 hover:text-yellow-400 transition-colors"
               aria-label="Toggle Menu"
             >
-              <div className="w-6 h-6 flex flex-col justify-center items-center space-y-1.5">
+              <div className="w-6 h-5 relative flex items-center justify-center">
                 <motion.span 
-                  animate={isOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
-                  className="w-6 h-0.5 bg-current rounded-full block transition-transform"
+                  animate={isOpen ? { rotate: 45, y: 0 } : { rotate: 0, y: -8 }}
+                  className="absolute w-full h-0.5 bg-current rounded-full transition-all"
                 />
                 <motion.span 
                   animate={isOpen ? { opacity: 0 } : { opacity: 1 }}
-                  className="w-6 h-0.5 bg-current rounded-full block transition-opacity"
+                  className="absolute w-full h-0.5 bg-current rounded-full transition-all"
                 />
                 <motion.span 
-                  animate={isOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
-                  className="w-6 h-0.5 bg-current rounded-full block transition-transform"
+                  animate={isOpen ? { rotate: -45, y: 0 } : { rotate: 0, y: 8 }}
+                  className="absolute w-full h-0.5 bg-current rounded-full transition-all"
                 />
               </div>
             </button>
           </div>
         </div>
-      </div>
+        </div>
+      </nav>
 
       {/* Mobile Nav Overlay */}
       <AnimatePresence>
@@ -247,24 +290,24 @@ const Navbar = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[105] bg-zinc-950/95 backdrop-blur-xl md:hidden flex flex-col items-center justify-center"
+            className="fixed inset-0 z-[90] bg-zinc-950/98 backdrop-blur-xl md:hidden flex flex-col pt-24 pb-12 px-8 overflow-y-auto"
           >
-            <div className="flex flex-col items-center space-y-8">
+            <div className="flex flex-col space-y-6 flex-1 mt-8">
               {navLinks.map((link, i) => (
                 <motion.div
                   key={link.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
                 >
                   <Link
                     to={link.path}
                     onClick={() => setIsOpen(false)}
                     className={cn(
-                      "text-3xl font-bold transition-colors",
+                      "text-4xl font-black tracking-tight transition-colors block py-2",
                       location.pathname === link.path 
                         ? "text-yellow-400" 
-                        : "text-zinc-500 hover:text-white"
+                        : "text-zinc-400 hover:text-white"
                     )}
                   >
                     {link.name}
@@ -276,23 +319,26 @@ const Navbar = () => {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="absolute bottom-12 flex space-x-6"
+              transition={{ delay: 0.4 }}
+              className="pt-8 border-t border-white/10 flex flex-col space-y-6"
             >
-              <a href="https://www.instagram.com/ignite.xt/" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-yellow-400 transition-colors">
-                <Instagram className="w-6 h-6" />
-              </a>
-              <a href="https://github.com/ignitext" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-yellow-400 transition-colors">
-                <Github className="w-6 h-6" />
-              </a>
-              <a href="https://mail.google.com/mail/?view=cm&fs=1&to=Ignitext@gmail.com" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-yellow-400 transition-colors">
-                <Mail className="w-6 h-6" />
-              </a>
+              <span className="text-zinc-500 text-xs font-bold tracking-[0.2em] uppercase">Connect with us</span>
+              <div className="flex space-x-6">
+                <a href="https://www.instagram.com/ignite.xt/" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-yellow-400 transition-colors">
+                  <Instagram className="w-6 h-6" />
+                </a>
+                <a href="https://github.com/skmdsadiq1607" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-yellow-400 transition-colors">
+                  <Github className="w-6 h-6" />
+                </a>
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=Ignitext@gmail.com" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-yellow-400 transition-colors">
+                  <Mail className="w-6 h-6" />
+                </a>
+              </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
+    </>
   );
 };
 
@@ -308,7 +354,7 @@ const Footer = () => (
             The ultimate student community for Anurag University. Empowering students with structured academic resources, events, and a collaborative ecosystem.
           </p>
           <div className="flex space-x-4">
-            <a href="https://github.com/ignitext" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg border border-white/5 flex items-center justify-center text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/50 transition-all duration-300">
+            <a href="https://github.com/skmdsadiq1607" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg border border-white/5 flex items-center justify-center text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/50 transition-all duration-300">
               <Github className="w-4 h-4" />
             </a>
             <a href="https://www.instagram.com/ignite.xt/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg border border-white/5 flex items-center justify-center text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/50 transition-all duration-300">
@@ -354,8 +400,8 @@ const Footer = () => (
           <p className="text-zinc-400 text-xs font-medium">
             Made with ❤️ by <span className="text-yellow-400">IgniteXT Technical Team</span>
           </p>
-          <p className="text-zinc-600 text-[10px] tracking-[0.2em] uppercase font-bold">
-            Sadiq | Bharath | Mrudhula | Santhoshini | Rohit | Fathima
+          <p className="text-zinc-400 text-xs tracking-wider font-medium">
+            <span className="text-yellow-400 font-bold">Sadiq</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Bharath</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Mrudhula</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Santhoshini</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Rohit</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Fathima</span>
           </p>
         </div>
       </div>
@@ -473,57 +519,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Founder Recognition Section */}
-      <section className="py-24 bg-zinc-950 border-t border-white/5 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(234,179,8,0.05),transparent_70%)]" />
-        <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
-          <div className="flex flex-col items-center text-center space-y-12">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="space-y-4"
-            >
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-yellow-400/10 text-yellow-400 text-[10px] font-bold uppercase tracking-[0.3em]">
-                <Sparkles className="w-3 h-3" />
-                <span>Founder's Recognition</span>
-              </div>
-              <h2 className="text-4xl md:text-7xl font-black text-white tracking-tighter">
-                Special Thanks to our <span className="text-yellow-400">Founder</span>
-              </h2>
-            </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="relative group max-w-2xl w-full"
-            >
-              <div className="absolute -inset-4 bg-gradient-to-r from-yellow-400/20 to-transparent blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="relative p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] bg-zinc-900/50 border border-white/10 backdrop-blur-xl space-y-6 md:space-y-8">
-                <div className="w-24 h-24 rounded-3xl bg-yellow-400 flex items-center justify-center mx-auto shadow-2xl shadow-yellow-400/20 group-hover:rotate-6 transition-transform duration-500">
-                  <User className="w-12 h-12 text-black" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Akshath Sugandh</h3>
-                  <p className="text-yellow-400 font-bold uppercase tracking-[0.2em] text-xs">Founder of IgniteXT</p>
-                </div>
-                <p className="text-zinc-400 text-lg leading-relaxed italic">
-                  "Building a community isn't just about resources; it's about creating a space where every student feels empowered to innovate and lead. IgniteXT is the spark for that journey."
-                </p>
-                <div className="flex justify-center space-x-4 pt-4">
-                  <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:text-yellow-400 hover:bg-yellow-400/10 transition-all">
-                    <Linkedin className="w-5 h-5" />
-                  </a>
-                  <a href="#" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-400 hover:text-yellow-400 hover:bg-yellow-400/10 transition-all">
-                    <Twitter className="w-5 h-5" />
-                  </a>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
 
       {/* Technical Team Thanks Section */}
       <section className="py-24 bg-zinc-950 border-t border-white/5 relative overflow-hidden">
@@ -914,11 +910,11 @@ const ResourcesPage = () => {
   );
 
   return (
-    <div className="pt-20 min-h-screen bg-zinc-950 flex flex-col md:flex-row relative overflow-hidden">
+    <div className="pt-20 min-h-screen bg-zinc-950 flex flex-col md:flex-row relative">
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-400/[0.01] via-transparent to-transparent pointer-events-none" />
       
       {/* Mobile Filter Toggle */}
-      <div className="md:hidden sticky top-20 z-30 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 p-4 flex items-center justify-between">
+      <div className="md:hidden bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 rounded-lg bg-yellow-400/10 flex items-center justify-center text-yellow-400">
             <Filter className="w-4 h-4" />
@@ -1118,7 +1114,7 @@ const Events = () => {
               <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100" />
             </a>
             
-            <div className="flex p-1 bg-zinc-900 rounded-xl border border-white/5 w-full sm:w-auto grid grid-cols-2 sm:flex">
+            <div className="grid grid-cols-2 sm:flex p-1 bg-zinc-900 rounded-xl border border-white/5 w-full sm:w-auto">
               <button 
                 onClick={() => setActiveTab('upcoming')}
                 className={cn(
@@ -1377,7 +1373,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
             </motion.div>
             
             <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter leading-tight">
-              Welcome to <span className="text-yellow-400">IgniteXT</span>
+              Welcome to <span className="text-yellow-400">IgniteXT</span> <span className="text-white">x AnuragU</span>
             </h1>
             <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
               The most powerful student-led community platform at Anurag University. 
@@ -1417,8 +1413,16 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
           </motion.button>
         </motion.div>
 
-        <div className="mt-12 text-zinc-600 text-[10px] font-bold tracking-[0.3em] uppercase relative z-10">
-          IgniteXT Technical Team • 2026
+        <div className="mt-12 flex flex-col items-center text-center space-y-6 relative z-10">
+          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">&copy; 2026 IgniteXT Student Community. All rights reserved.</p>
+          <div className="flex flex-col items-center space-y-3">
+            <p className="text-zinc-400 text-xs font-medium">
+              Made with ❤️ by <span className="text-yellow-400">IgniteXT Technical Team</span>
+            </p>
+            <p className="text-zinc-400 text-xs tracking-wider font-medium">
+              <span className="text-yellow-400 font-bold">Sadiq</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Bharath</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Mrudhula</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Santhoshini</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Rohit</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Fathima</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>
