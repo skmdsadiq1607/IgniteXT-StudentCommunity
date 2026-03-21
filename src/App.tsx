@@ -1384,7 +1384,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
             className="text-center space-y-8 mb-16"
           >
             <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight leading-tight">
-               <span className="text-yellow-400">IgniteXT </span>x AnuragU
+               What is<span className="text-yellow-400">IgniteXT?</span>
             </h1>
             
             {/* Engaging Questions Section */}
