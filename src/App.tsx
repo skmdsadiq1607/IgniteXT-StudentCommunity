@@ -342,14 +342,20 @@ const Navbar = () => {
   );
 };
 
-const Footer = () => (
+const Footer = ({ useLinks = true }: { useLinks?: boolean }) => (
   <footer className="bg-zinc-950 border-t border-white/5 py-24">
     <div className="max-w-7xl mx-auto px-4 md:px-8">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-24">
         <div className="col-span-1 md:col-span-2 space-y-6">
-          <Link to="/">
-            <Logo className="w-8 h-8" />
-          </Link>
+          {useLinks ? (
+            <Link to="/">
+              <Logo className="w-8 h-8" />
+            </Link>
+          ) : (
+            <a href="/">
+              <Logo className="w-8 h-8" />
+            </a>
+          )}
           <p className="text-zinc-400 max-w-sm text-sm leading-relaxed">
             The ultimate student community for Anurag University. Empowering students with structured academic resources, events, and a collaborative ecosystem.
           </p>
@@ -373,7 +379,11 @@ const Footer = () => (
           <ul className="space-y-3">
             {['Notes', 'Events', 'About'].map((item) => (
               <li key={item}>
-                <Link to={`/${item.toLowerCase()}`} className="text-zinc-400 hover:text-yellow-400 text-sm transition-colors">{item}</Link>
+                {useLinks ? (
+                  <Link to={`/${item.toLowerCase()}`} className="text-zinc-400 hover:text-yellow-400 text-sm transition-colors">{item}</Link>
+                ) : (
+                  <a href={`/${item.toLowerCase()}`} className="text-zinc-400 hover:text-yellow-400 text-sm transition-colors">{item}</a>
+                )}
               </li>
             ))}
           </ul>
@@ -383,12 +393,21 @@ const Footer = () => (
           <ul className="space-y-3">
             {['Contact', 'Privacy Policy', 'Terms of Service', 'FAQ'].map((item) => (
               <li key={item}>
-                <Link 
-                  to={item === 'Contact' ? '/contact' : `/${item.toLowerCase().replace(/ /g, '-')}`} 
-                  className="text-zinc-400 hover:text-yellow-400 text-sm transition-colors"
-                >
-                  {item}
-                </Link>
+                {useLinks ? (
+                  <Link 
+                    to={item === 'Contact' ? '/contact' : `/${item.toLowerCase().replace(/ /g, '-')}`} 
+                    className="text-zinc-400 hover:text-yellow-400 text-sm transition-colors"
+                  >
+                    {item}
+                  </Link>
+                ) : (
+                  <a 
+                    href={item === 'Contact' ? '/contact' : `/${item.toLowerCase().replace(/ /g, '-')}`} 
+                    className="text-zinc-400 hover:text-yellow-400 text-sm transition-colors"
+                  >
+                    {item}
+                  </a>
+                )}
               </li>
             ))}
           </ul>
@@ -401,7 +420,7 @@ const Footer = () => (
             Made with ❤️ by <span className="text-yellow-400">IgniteXT Technical Team</span>
           </p>
           <p className="text-zinc-400 text-xs tracking-wider font-medium">
-            <span className="text-yellow-400 font-bold">Sadiq</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Bharath</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Mrudhula</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Santhoshini</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Rohit</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Fathima</span>
+            <span className="text-yellow-400 font-bold">Sadiq</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Bharath</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Mrudhula</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Santhoshini</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Rohit</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Tehnaaz</span>
           </p>
         </div>
       </div>
@@ -542,7 +561,7 @@ const Home = () => {
               { name: "Santhoshini", role: "Developer", github: "#", linkedin: "#" },
               { name: "Mrudhula", role: "Developer", github: "#", linkedin: "#" },
               { name: "Rohit", role: "Developer", github: "#", linkedin: "#" },
-              { name: "Fathima", role: "Developer", github: "#", linkedin: "#" }
+              { name: "Tehnaaz", role: "Developer", github: "#", linkedin: "#" }
             ].map((member, i) => (
               <motion.div
                 key={i}
@@ -644,7 +663,7 @@ const About = () => {
     { name: "Santhoshini", dept: "AIML", year: "2nd", role: "Technical Team", category: "Technical Team", bio: "Developing and maintaining technical resources for students." },
     { name: "Mrudhula", dept: "IT", year: "2nd", role: "Technical Team", category: "Technical Team", bio: "Contributing to the development of the IgniteXT platform." },
     { name: "Rohit", dept: "DS", year: "3rd", role: "Technical Team", category: "Technical Team", bio: "Exploring data-driven solutions for community challenges." },
-    { name: "Fathima", dept: "AI", year: "2nd", role: "Technical Team", category: "Technical Team", bio: "Implementing AI-powered features to enhance the student experience." },
+    { name: "Tehnaaz", dept: "AI", year: "2nd", role: "Technical Team", category: "Technical Team", bio: "Implementing AI-powered features to enhance the student experience." },
   ];
 
   const categories = ["Leads", "Department Leads", "Technical Team", "Operations & Management", "Events & Outreach", "Content & Communication", "Design & Media"];
@@ -1349,80 +1368,87 @@ const Contact = () => {
 // --- Landing Page ---
 const LandingPage = ({ onStart }: { onStart: () => void }) => {
   return (
-    <div className="fixed inset-0 z-[200] bg-zinc-950 overflow-y-auto">
-      <div className="min-h-screen flex flex-col items-center justify-center py-12 relative">
-        {/* Background Elements */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-20 pointer-events-none" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-yellow-400/10 blur-[120px] rounded-full animate-pulse pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-yellow-400/5 blur-[120px] rounded-full animate-pulse delay-700 pointer-events-none" />
+    <div className="fixed inset-0 z-[200] bg-zinc-950 overflow-y-auto selection:bg-yellow-400 selection:text-black">
+      <div className="min-h-screen flex flex-col items-center justify-center py-20 relative">
+        {/* Subtle Background Elements */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-yellow-400/5 to-transparent pointer-events-none" />
         
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="max-w-4xl px-4 text-center space-y-12 relative z-10 w-full"
-        >
-          <div className="space-y-6">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
-              className="flex justify-center mb-8"
-            >
-              <Logo className="w-20 h-20" iconOnly />
-            </motion.div>
-            
-            <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter leading-tight">
-              Welcome to <span className="text-yellow-400">IgniteXT</span> <span className="text-white">x AnuragU</span>
+        <div className="max-w-4xl px-4 w-full relative z-10 flex flex-col items-center">
+          
+          {/* Main Typography */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="text-center space-y-8 mb-16"
+          >
+            <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight leading-tight">
+              Master Your <span className="text-yellow-400">Campus Journey.</span>
             </h1>
-            <p className="text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-              The most powerful student-led community platform at Anurag University. 
-              Access premium academic resources, stay updated with campus events, 
-              and connect with the brightest minds.
-            </p>
-          </div>
+            
+            {/* Engaging Questions Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left max-w-2xl mx-auto">
+              {[
+                "Worried about last-minute notes?",
+                "Struggling to track campus events?",
+                "Need a collaborative study group?",
+                "Looking for premium resources?"
+              ].map((q, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 + i * 0.1 }}
+                  className="flex items-center space-x-3 text-zinc-400"
+                >
+                  <Sparkles className="w-4 h-4 text-yellow-400" />
+                  <span className="text-sm md:text-base font-medium">{q}</span>
+                </motion.div>
+              ))}
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+            <p className="text-white text-lg md:text-2xl font-bold pt-4">
+              Don't worry, IgniteXT is your one-stop solution.
+            </p>
+          </motion.div>
+
+          {/* Action Button */}
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.6 }}
+            onClick={onStart}
+            className="mb-24 px-10 py-5 bg-yellow-400 text-black font-black rounded-2xl hover:bg-yellow-300 transition-all shadow-lg shadow-yellow-400/20 flex items-center space-x-3"
+          >
+            <span className="tracking-widest">GET STARTED NOW</span>
+            <ArrowRight className="w-5 h-5" />
+          </motion.button>
+
+          {/* Feature Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl mx-auto">
             {[
-              { icon: BookOpen, title: "Academic Hub", desc: "Structured notes and materials for all departments." },
-              { icon: Calendar, title: "Event Updates", desc: "Never miss a workshop, hackathon, or meetup." },
-              { icon: Users, title: "Community", desc: "Join 1000+ students in a collaborative ecosystem." }
+              { icon: BookOpen, title: "Academic Hub", desc: "Curated notes and study materials." },
+              { icon: Users, title: "1000+ Members", desc: "A thriving network of peers." },
+              { icon: Calendar, title: "Events", desc: "Stay ahead with tech meetups." }
             ].map((item, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + i * 0.1 }}
-                className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 + i * 0.1 }}
+                className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-yellow-400/30 transition-colors"
               >
                 <item.icon className="w-6 h-6 text-yellow-400 mb-4" />
-                <h3 className="text-white font-bold mb-2">{item.title}</h3>
-                <p className="text-zinc-500 text-xs leading-relaxed">{item.desc}</p>
+                <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
+                <p className="text-zinc-500 text-sm leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onStart}
-            className="group px-8 md:px-12 py-4 md:py-5 bg-yellow-400 text-black font-black rounded-2xl hover:bg-yellow-300 transition-all shadow-2xl shadow-yellow-400/20 flex items-center justify-center space-x-3 mx-auto w-full sm:w-auto"
-          >
-            <span>LET'S START</span>
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </motion.button>
-        </motion.div>
+          {/* Footer */}
+          <Footer useLinks={false} />
 
-        <div className="mt-12 flex flex-col items-center text-center space-y-6 relative z-10">
-          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">&copy; 2026 IgniteXT Student Community. All rights reserved.</p>
-          <div className="flex flex-col items-center space-y-3">
-            <p className="text-zinc-400 text-xs font-medium">
-              Made with ❤️ by <span className="text-yellow-400">IgniteXT Technical Team</span>
-            </p>
-            <p className="text-zinc-400 text-xs tracking-wider font-medium">
-              <span className="text-yellow-400 font-bold">Sadiq</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Bharath</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Mrudhula</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Santhoshini</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Rohit</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Fathima</span>
-            </p>
-          </div>
         </div>
       </div>
     </div>
