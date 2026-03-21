@@ -1384,11 +1384,11 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
             className="text-center space-y-8 mb-16"
           >
             <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight leading-tight">
-               What is <span className="text-yellow-400">IgniteXT?</span>
+              What is <span className="text-yellow-400">IgniteXT?</span>
             </h1>
             
             {/* Engaging Questions Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left max-w-2xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center md:justify-items-start text-center md:text-left max-w-2xl mx-auto">
               {[
                 "Worried about last-minute notes?",
                 "Struggling to track campus events?",
