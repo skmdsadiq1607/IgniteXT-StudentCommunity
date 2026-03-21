@@ -155,7 +155,7 @@ const Logo = ({ className = "w-10 h-10", iconOnly = false }: { className?: strin
     {!iconOnly && (
       <div className="flex flex-col">
         <span className="text-xl font-bold tracking-tight text-white leading-none">
-          Ignite<span className="text-yellow-400">XT</span> <span className="text-white/40 font-light">x</span> <span className="text-white/90">AnuragU</span>
+          Ignite<span className="text-yellow-400">XT</span>
         </span>
         <span className="text-[7px] font-bold tracking-[0.25em] text-zinc-500 uppercase mt-1">
           Student Community
