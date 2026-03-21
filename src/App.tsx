@@ -397,15 +397,15 @@ const Home = () => {
               The ultimate student-led resource hub for <span className="text-white">Anurag University</span>. Empowering the next generation of innovators.
             </p>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Link to="/events" className="group px-8 py-4 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-300 transition-all duration-300 w-full sm:w-auto flex items-center justify-center space-x-2">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 w-full">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                <Link to="/events" className="group px-8 py-4 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-300 transition-all duration-300 w-full flex items-center justify-center space-x-2">
                   <span>Explore Events</span>
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </motion.div>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Link to="/notes" className="px-8 py-4 bg-zinc-900 text-white font-bold rounded-xl border border-white/10 hover:border-white/20 transition-all duration-300 w-full sm:w-auto">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                <Link to="/notes" className="px-8 py-4 bg-zinc-900 text-white font-bold rounded-xl border border-white/10 hover:border-white/20 transition-all duration-300 w-full flex items-center justify-center">
                   Get Resources
                 </Link>
               </motion.div>
@@ -500,7 +500,7 @@ const Home = () => {
               className="relative group max-w-2xl w-full"
             >
               <div className="absolute -inset-4 bg-gradient-to-r from-yellow-400/20 to-transparent blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="relative p-10 rounded-[3rem] bg-zinc-900/50 border border-white/10 backdrop-blur-xl space-y-8">
+              <div className="relative p-6 md:p-10 rounded-[2rem] md:rounded-[3rem] bg-zinc-900/50 border border-white/10 backdrop-blur-xl space-y-6 md:space-y-8">
                 <div className="w-24 h-24 rounded-3xl bg-yellow-400 flex items-center justify-center mx-auto shadow-2xl shadow-yellow-400/20 group-hover:rotate-6 transition-transform duration-500">
                   <User className="w-12 h-12 text-black" />
                 </div>
@@ -779,7 +779,7 @@ const About = () => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-32 p-12 md:p-20 rounded-[3rem] bg-zinc-900 border border-white/5 relative overflow-hidden text-center space-y-10 group"
+          className="mt-24 md:mt-32 p-8 md:p-20 rounded-[2rem] md:rounded-[3rem] bg-zinc-900 border border-white/5 relative overflow-hidden text-center space-y-8 md:space-y-10 group"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/[0.02] via-transparent to-transparent opacity-50" />
           <div className="relative z-10 space-y-8">
@@ -1017,7 +1017,7 @@ const ResourcesPage = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-8 md:p-16 rounded-[2.5rem] bg-zinc-900 border border-white/5 relative overflow-hidden group"
+          className="p-6 md:p-16 rounded-[2rem] md:rounded-[2.5rem] bg-zinc-900 border border-white/5 relative overflow-hidden group"
         >
           <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700">
             <Zap className="w-64 h-64 text-yellow-400" />
@@ -1106,23 +1106,23 @@ const Events = () => {
             <p className="text-zinc-400 text-sm max-w-xl leading-relaxed">Join us for workshops, hackathons, and community meetups designed to ignite your potential.</p>
           </div>
           
-          <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
             <a 
               href="https://chat.whatsapp.com/LQBXD6W3Oi9LaU30Ft9mKu" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center space-x-3 px-6 py-2.5 rounded-xl bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 font-bold text-sm hover:bg-yellow-400 hover:text-black transition-all group"
+              className="flex items-center justify-center space-x-3 px-6 py-2.5 rounded-xl bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 font-bold text-sm hover:bg-yellow-400 hover:text-black transition-all group w-full sm:w-auto"
             >
               <MessageSquare className="w-4 h-4" />
               <span>Events Community</span>
               <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100" />
             </a>
             
-            <div className="flex p-1 bg-zinc-900 rounded-xl border border-white/5">
+            <div className="flex p-1 bg-zinc-900 rounded-xl border border-white/5 w-full sm:w-auto grid grid-cols-2 sm:flex">
               <button 
                 onClick={() => setActiveTab('upcoming')}
                 className={cn(
-                  "px-6 py-2 rounded-lg text-sm font-bold transition-all",
+                  "px-6 py-2 rounded-lg text-sm font-bold transition-all text-center flex items-center justify-center",
                   activeTab === 'upcoming' ? "bg-yellow-400 text-black shadow-lg shadow-yellow-400/20" : "text-zinc-400 hover:text-white"
                 )}
               >
@@ -1131,7 +1131,7 @@ const Events = () => {
               <button 
                 onClick={() => setActiveTab('past')}
                 className={cn(
-                  "px-6 py-2 rounded-lg text-sm font-bold transition-all",
+                  "px-6 py-2 rounded-lg text-sm font-bold transition-all text-center flex items-center justify-center",
                   activeTab === 'past' ? "bg-yellow-400 text-black shadow-lg shadow-yellow-400/20" : "text-zinc-400 hover:text-white"
                 )}
               >
@@ -1263,7 +1263,7 @@ const Contact = () => {
             </div>
           </div>
 
-            <div className="p-8 md:p-10 rounded-2xl bg-zinc-900 border border-white/5 space-y-6 relative">
+            <div className="p-6 md:p-10 rounded-2xl bg-zinc-900 border border-white/5 space-y-6 relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400/[0.02] to-transparent pointer-events-none" />
             <div className="space-y-2">
               <h3 className="text-xl font-bold text-white">Send a Message</h3>
@@ -1407,7 +1407,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={onStart}
-          className="group px-12 py-5 bg-yellow-400 text-black font-black rounded-2xl hover:bg-yellow-300 transition-all shadow-2xl shadow-yellow-400/20 flex items-center space-x-3 mx-auto"
+          className="group px-8 md:px-12 py-4 md:py-5 bg-yellow-400 text-black font-black rounded-2xl hover:bg-yellow-300 transition-all shadow-2xl shadow-yellow-400/20 flex items-center justify-center space-x-3 mx-auto w-full sm:w-auto"
         >
           <span>LET'S START</span>
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
