@@ -53,40 +53,97 @@
   }
 
   .dark {
-    --background: 240 10% 3.9%;
+    --background: 240 18% 7%; /* #0f1115 equivalentish */
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 240 18% 7%;
     --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
+    --popover: 240 18% 7%;
     --popover-foreground: 0 0% 98%;
     --primary: 45 93% 47%;
     --primary-foreground: 0 0% 0%;
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 240 10% 12%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
+    --muted: 240 10% 12%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
+    --accent: 240 10% 12%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: 240 10% 15%;
+    --input: 240 10% 15%;
     --ring: 45 93% 47%;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
     @apply bg-background text-foreground antialiased transition-colors duration-500;
     font-family: var(--font-sans);
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.03em;
+    line-height: 1.2;
   }
 }
 
 @layer utilities {
+  .noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+  }
+
+  .mesh-gradient {
+    background-color: hsla(var(--background));
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(var(--primary) / 0.15) 0px, transparent 50%),
+      radial-gradient(at 50% 0%, hsla(var(--accent) / 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(var(--primary) / 0.15) 0px, transparent 50%);
+  }
+
   .glow-primary {
-    box-shadow: 0 0 15px rgba(var(--primary), 0.2);
+    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
   }
-  .glow-accent {
-    box-shadow: 0 0 30px rgba(var(--accent), 0.3);
+
+  .glow-border {
+    position: relative;
   }
+  .glow-border::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(45deg, hsl(var(--primary) / 0.5), transparent, hsl(var(--primary) / 0.5));
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .glow-border:hover::after {
+    opacity: 1;
+  }
+
+  .link-underline {
+    position: relative;
+  }
+  .link-underline::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: hsl(var(--primary));
+    transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .link-underline:hover::after {
+    width: 100%;
+  }
+
   .bg-dot-pattern {
     background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px);
     background-size: 24px 24px;
@@ -99,16 +156,17 @@
   .glass {
     @apply bg-background/60 backdrop-blur-xl border border-border/50;
   }
-  .glass-dark {
-    @apply bg-background/60 backdrop-blur-xl border border-border/20;
-  }
   .text-premium {
     @apply bg-clip-text text-transparent bg-premium-gradient;
   }
 }
 
 .card-hover {
-  @apply transition-all duration-500 ease-out hover:scale-[1.01] hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/5;
+  @apply transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10;
+}
+
+.btn-hover {
+  @apply transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] hover:shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)];
 }
 
 @keyframes float {

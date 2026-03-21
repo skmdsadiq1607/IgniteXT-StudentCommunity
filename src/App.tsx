@@ -290,10 +290,12 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Domain restriction
+    // Domain restriction removed
+    /*
     if (!email.endsWith('@anurag.edu.in')) {
       return toast.error('Only @anurag.edu.in emails are allowed');
     }
+    */
 
     setLoading(true);
     try {
@@ -314,10 +316,12 @@ const LoginPage = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
+      /*
       if (!user.email?.endsWith('@anurag.edu.in')) {
         await signOut(auth);
         return toast.error('Only @anurag.edu.in emails are allowed');
       }
+      */
 
       // Check if user document exists, if not create it
       const userDoc = await getDocFromServer(doc(db, 'users', user.uid));
@@ -383,7 +387,7 @@ const LoginPage = () => {
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="student@anurag.edu.in"
+                placeholder="your-email@example.com"
                 required
                 className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
               />
@@ -441,10 +445,12 @@ const SignupPage = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Domain restriction
+    // Domain restriction removed
+    /*
     if (!email.endsWith('@anurag.edu.in')) {
       return toast.error('Only @anurag.edu.in emails are allowed');
     }
+    */
 
     setLoading(true);
     try {
@@ -486,10 +492,12 @@ const SignupPage = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
+      /*
       if (!user.email?.endsWith('@anurag.edu.in')) {
         await signOut(auth);
         return toast.error('Only @anurag.edu.in emails are allowed');
       }
+      */
 
       // Create/Update user document in Firestore
       const userPath = `users/${user.uid}`;
@@ -573,11 +581,11 @@ const SignupPage = () => {
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="student@anurag.edu.in"
+                placeholder="your-email@example.com"
                 required
                 className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none"
               />
-              <p className="text-[10px] text-muted-foreground ml-1">Must use @anurag.edu.in domain</p>
+              <p className="text-[10px] text-muted-foreground ml-1">Use your student or personal email</p>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium ml-1">Password</label>
