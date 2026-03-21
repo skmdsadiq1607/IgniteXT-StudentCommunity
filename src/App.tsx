@@ -22,7 +22,9 @@ import {
   Sparkles,
   RefreshCw,
   ArrowRight,
-  MessageSquare
+  MessageSquare,
+  User,
+  Filter
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -159,12 +161,10 @@ function cn(...inputs: ClassValue[]) {
 // --- Components ---
 const Logo = ({ className = "w-10 h-10", iconOnly = false }: { className?: string, iconOnly?: boolean }) => (
   <div className="flex items-center space-x-3 group">
-    <div className={cn("bg-yellow-400 rounded-full flex items-center justify-center shadow-lg shadow-yellow-400/40 group-hover:scale-105 transition-transform duration-300 relative overflow-hidden", className)}>
-      <div className="absolute inset-0 bg-gradient-to-tr from-yellow-500/20 to-transparent" />
-      <svg viewBox="0 0 24 24" className="w-6 h-6 text-black fill-none stroke-current stroke-[1.5] relative z-10" xmlns="http://www.w3.org/2000/svg">
-        {/* Lightbulb base */}
+    <div className={cn("bg-zinc-900 border border-white/10 rounded-xl flex items-center justify-center group-hover:border-yellow-400/50 transition-all duration-500 relative overflow-hidden", className)}>
+      <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <svg viewBox="0 0 24 24" className="w-6 h-6 text-yellow-400 fill-none stroke-current stroke-[1.5] relative z-10" xmlns="http://www.w3.org/2000/svg">
         <path d="M9 18h6M10 21h4M12 15v3" strokeLinecap="round" />
-        {/* Brain inside bulb shape */}
         <path d="M12 3c-3.5 0-6 2.5-6 5.5 0 2 1 3.5 2.5 4.5.5.3.5.7.5 1.2v.8h6v-.8c0-.5 0-.9.5-1.2 1.5-1 2.5-2.5 2.5-4.5 0-3-2.5-5.5-6-5.5z" strokeLinecap="round" />
         <path d="M12 5v6M9 8h6" strokeLinecap="round" opacity="0.3" />
         <path d="M12 3c-1 0-2 .5-2 1.5s1 1.5 2 1.5 2 .5 2 1.5-1 1.5-2 1.5" strokeLinecap="round" />
@@ -195,11 +195,23 @@ const Navbar = () => {
     { name: 'Contact', path: '/contact' },
   ];
 
+  // Lock scroll when mobile menu is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5">
+    <nav className="fixed top-0 left-0 right-0 z-[100] glass border-b border-white/5">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/">
+          <Link to="/" onClick={() => setIsOpen(false)}>
             <Logo />
           </Link>
 
@@ -210,13 +222,20 @@ const Navbar = () => {
                 key={link.name}
                 to={link.path}
                 className={cn(
-                  "px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg",
+                  "px-4 py-2 text-sm font-medium transition-all duration-300 rounded-lg relative group",
                   location.pathname === link.path 
-                    ? "text-yellow-400 bg-yellow-400/10" 
-                    : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
+                    ? "text-yellow-400" 
+                    : "text-zinc-400 hover:text-zinc-100"
                 )}
               >
                 {link.name}
+                {location.pathname === link.path && (
+                  <motion.div 
+                    layoutId="nav-underline"
+                    className="absolute bottom-0 left-4 right-4 h-0.5 bg-yellow-400 rounded-full"
+                  />
+                )}
+                <div className="absolute inset-0 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
               </Link>
             ))}
           </div>
@@ -225,40 +244,77 @@ const Navbar = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 text-zinc-400 hover:text-yellow-400 transition-colors"
+              className="p-2 text-zinc-400 hover:text-yellow-400 transition-colors relative z-[110]"
+              aria-label="Toggle Menu"
             >
-              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              <div className="w-6 h-6 flex flex-col justify-center items-center space-y-1.5">
+                <motion.span 
+                  animate={isOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
+                  className="w-6 h-0.5 bg-current rounded-full block transition-transform"
+                />
+                <motion.span 
+                  animate={isOpen ? { opacity: 0 } : { opacity: 1 }}
+                  className="w-6 h-0.5 bg-current rounded-full block transition-opacity"
+                />
+                <motion.span 
+                  animate={isOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
+                  className="w-6 h-0.5 bg-current rounded-full block transition-transform"
+                />
+              </div>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Nav */}
+      {/* Mobile Nav Overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="md:hidden glass border-b border-white/5 overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[105] bg-zinc-950/95 backdrop-blur-xl md:hidden flex flex-col items-center justify-center"
           >
-            <div className="px-4 py-4 space-y-1">
-              {navLinks.map((link) => (
-                <Link
+            <div className="flex flex-col items-center space-y-8">
+              {navLinks.map((link, i) => (
+                <motion.div
                   key={link.name}
-                  to={link.path}
-                  onClick={() => setIsOpen(false)}
-                  className={cn(
-                    "block px-4 py-3 rounded-xl text-sm font-medium transition-colors",
-                    location.pathname === link.path 
-                      ? "bg-yellow-400/10 text-yellow-400" 
-                      : "text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
-                  )}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
                 >
-                  {link.name}
-                </Link>
+                  <Link
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={cn(
+                      "text-3xl font-bold transition-colors",
+                      location.pathname === link.path 
+                        ? "text-yellow-400" 
+                        : "text-zinc-500 hover:text-white"
+                    )}
+                  >
+                    {link.name}
+                  </Link>
+                </motion.div>
               ))}
             </div>
+            
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="absolute bottom-12 flex space-x-6"
+            >
+              <a href="https://www.instagram.com/ignite.xt/" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-yellow-400 transition-colors">
+                <Instagram className="w-6 h-6" />
+              </a>
+              <a href="https://github.com/ignitext" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-yellow-400 transition-colors">
+                <Github className="w-6 h-6" />
+              </a>
+              <a href="mailto:skmdsadiq1607@gmail.com" className="text-zinc-500 hover:text-yellow-400 transition-colors">
+                <Mail className="w-6 h-6" />
+              </a>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -340,24 +396,27 @@ const Home = () => {
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-zinc-950 bg-grid-pattern py-24">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/50 to-zinc-950" />
-        <div className="absolute top-1/4 -left-20 w-[600px] h-[600px] bg-yellow-400/[0.07] blur-[150px] rounded-full animate-pulse" />
-        <div className="absolute bottom-1/4 -right-20 w-[600px] h-[600px] bg-yellow-400/[0.07] blur-[150px] rounded-full animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-yellow-400/[0.03] blur-[200px] rounded-full" />
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(234,179,8,0.03),transparent_70%)]" />
         
         <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="space-y-10"
           >
-            <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-yellow-400/20 bg-yellow-400/5 text-yellow-400 text-[10px] font-bold uppercase tracking-[0.2em]">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] hover:border-yellow-400/30 hover:text-yellow-400 transition-colors cursor-default"
+            >
               <Sparkles className="w-3.5 h-3.5" />
               <span>Anurag University's Premier Tech Hub</span>
-            </div>
+            </motion.div>
             
-            <h1 className="text-5xl md:text-8xl font-bold tracking-tight leading-[1.1]">
-              <span className="text-yellow-400">IgniteXT</span> <span className="text-white">x AnuragU</span>
+            <h1 className="text-5xl md:text-8xl font-black tracking-tight leading-[1.1] text-white">
+              <span className="text-yellow-400">IgniteXT</span> <br className="md:hidden" /> <span className="text-white/90">x AnuragU</span>
             </h1>
             
             <p className="text-base md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed font-medium">
@@ -365,13 +424,17 @@ const Home = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <Link to="/events" className="group px-8 py-3.5 bg-yellow-400 text-black font-bold rounded-xl shadow-lg shadow-yellow-400/20 hover:bg-yellow-300 transition-all duration-300 w-full sm:w-auto flex items-center justify-center space-x-2">
-                <span>Explore Events</span>
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link to="/notes" className="px-8 py-3.5 bg-zinc-900 text-white font-bold rounded-xl border border-white/5 hover:border-yellow-400/50 transition-all duration-300 w-full sm:w-auto">
-                Get Resources
-              </Link>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Link to="/events" className="group px-8 py-4 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-300 transition-all duration-300 w-full sm:w-auto flex items-center justify-center space-x-2">
+                  <span>Explore Events</span>
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Link to="/notes" className="px-8 py-4 bg-zinc-900 text-white font-bold rounded-xl border border-white/10 hover:border-white/20 transition-all duration-300 w-full sm:w-auto">
+                  Get Resources
+                </Link>
+              </motion.div>
             </div>
           </motion.div>
         </div>
@@ -437,18 +500,20 @@ const Home = () => {
       </section>
 
       {/* Technical Team Thanks Section */}
-      <section className="py-24 bg-zinc-950 border-t border-white/5 relative">
+      <section className="py-24 bg-zinc-950 border-t border-white/5 relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent" />
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="text-center space-y-4 mb-16">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Recognition</span>
             <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
               Special Thanks to our <span className="text-yellow-400">Technical Team</span>
             </h2>
-            <p className="text-zinc-400 text-sm md:text-base max-w-2xl mx-auto">
-              The brilliant minds behind the IgniteXT digital experience.
+            <p className="text-zinc-400 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+              The dedicated minds behind the IgniteXT digital infrastructure and platform development.
             </p>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
             {[
               { name: "Sadiq", role: "Developer" },
               { name: "Bharath", role: "Tech Lead" },
@@ -463,10 +528,14 @@ const Home = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="p-6 rounded-2xl bg-zinc-900/50 border border-white/5 text-center space-y-3 group hover:border-yellow-400/30 transition-all"
+                whileHover={{ y: -5 }}
+                className="p-6 rounded-2xl bg-zinc-900/40 border border-white/5 text-center space-y-3 group hover:border-yellow-400/20 hover:bg-zinc-900/60 transition-all duration-500"
               >
-                <h4 className="text-white font-bold group-hover:text-yellow-400 transition-colors">{member.name}</h4>
-                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">{member.role}</p>
+                <div className="w-10 h-10 rounded-xl bg-yellow-400/5 flex items-center justify-center text-yellow-400 mx-auto mb-2 group-hover:scale-110 transition-transform">
+                  <User className="w-5 h-5" />
+                </div>
+                <h4 className="text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">{member.name}</h4>
+                <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">{member.role}</p>
               </motion.div>
             ))}
           </div>
@@ -524,7 +593,7 @@ const About = () => {
     { name: "Shiva", dept: "AI", year: "3rd", role: "AI Dept Lead", category: "Department Leads", bio: "Exploring the frontiers of AI and sharing knowledge with the community." },
     { name: "Ananya", dept: "AIML", year: "3rd", role: "Operations & Management Lead", category: "Operations & Management", bio: "Ensuring smooth execution of all IgniteXT initiatives and events." },
     { name: "Karthikeya", dept: "AI", year: "3rd", role: "Events & Outreach Lead", category: "Events & Outreach", bio: "Connecting IgniteXT with the broader student body through impactful events." },
-    { name: "Sadiq", dept: "IT", year: "2nd", role: "Technical Team", category: "Technical Team", bio: "The lead architect behind this platform. Passionate about building seamless digital experiences for the IgniteXT community.", github: "https://github.com/skmdsadiq1607" },
+    { name: "Sadiq", dept: "IT", year: "2nd", role: "Technical Team", category: "Technical Team", bio: "Full-stack developer focused on building scalable community tools and resources.", github: "https://github.com/skmdsadiq1607" },
     { name: "Bharath", dept: "AIML", year: "3rd", role: "Technical Team Lead", category: "Technical Team", bio: "Overseeing the technical architecture and development of community tools." },
     { name: "Ashrith", dept: "AIML", year: "1st", role: "Operations & Management", category: "Operations & Management", bio: "Supporting operational tasks and community management." },
     { name: "Asmita", dept: "AI", year: "2nd", role: "Operations & Management", category: "Operations & Management", bio: "Managing resources and coordinating between different departments." },
@@ -637,10 +706,11 @@ const About = () => {
         </div>
 
         {/* Core Values Section */}
-        <div className="mt-32 space-y-12">
+        <div className="mt-32 space-y-16">
           <div className="text-center space-y-4">
-            <h2 className="text-3xl font-bold text-white tracking-tight">Our Core Values</h2>
-            <p className="text-zinc-400 text-sm max-w-xl mx-auto">The principles that guide our community and drive our innovation.</p>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Our Foundation</span>
+            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Our Core Values</h2>
+            <p className="text-zinc-400 text-sm max-w-xl mx-auto leading-relaxed">The principles that guide our community and drive our innovation.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -648,211 +718,260 @@ const About = () => {
               { title: 'Innovation', desc: 'We constantly push the boundaries of what is possible, encouraging creative thinking and technical mastery.', icon: Sparkles },
               { title: 'Empowerment', desc: 'We provide students with the resources and support they need to take charge of their academic and professional journeys.', icon: Zap }
             ].map((value, i) => (
-              <div key={i} className="p-8 rounded-2xl bg-zinc-900 border border-white/5 space-y-4">
-                <div className="w-10 h-10 rounded-xl bg-yellow-400/10 flex items-center justify-center text-yellow-400">
-                  <value.icon className="w-5 h-5" />
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="p-8 rounded-[2rem] bg-zinc-900/50 border border-white/5 space-y-6 group hover:border-yellow-400/20 transition-all duration-500"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-yellow-400/5 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition-transform duration-500">
+                  <value.icon className="w-6 h-6" />
                 </div>
-                <h4 className="text-lg font-semibold text-white">{value.title}</h4>
-                <p className="text-sm text-zinc-400 leading-relaxed">{value.desc}</p>
-              </div>
+                <div className="space-y-2">
+                  <h4 className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">{value.title}</h4>
+                  <p className="text-sm text-zinc-500 leading-relaxed">{value.desc}</p>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
 
         {/* Join CTA */}
-        <div className="mt-32 p-12 rounded-3xl bg-zinc-900 border border-white/5 relative overflow-hidden text-center space-y-8">
-          <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-          <div className="relative z-10 space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
-              Ready to <span className="text-yellow-400">Ignite</span> your journey?
-            </h2>
-            <p className="text-zinc-400 text-sm max-w-xl mx-auto leading-relaxed">
-              Join the most active student community at Anurag University. Access resources, build projects, and grow with us.
-            </p>
-            <Link to="/contact" className="inline-flex items-center px-8 py-3 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-300 transition-all shadow-lg shadow-yellow-400/20">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-32 p-12 md:p-20 rounded-[3rem] bg-zinc-900 border border-white/5 relative overflow-hidden text-center space-y-10 group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/[0.02] via-transparent to-transparent opacity-50" />
+          <div className="relative z-10 space-y-8">
+            <div className="space-y-4">
+              <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-tight">
+                Ready to <span className="text-yellow-400">Ignite</span> <br className="hidden md:block" /> your journey?
+              </h2>
+              <p className="text-zinc-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+                Join the most active student community at Anurag University. Access resources, build projects, and grow with us.
+              </p>
+            </div>
+            <Link to="/contact" className="inline-flex items-center px-10 py-4 bg-yellow-400 text-black font-bold rounded-2xl hover:bg-yellow-300 transition-all shadow-2xl shadow-yellow-400/20 hover:scale-105 active:scale-95">
               Join the Community
             </Link>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
 };
 const ResourcesPage = () => {
   const depts = ['CSE', 'IT', 'AIML', 'DS', 'ECE'];
-  const years = ['1st', '2nd', '3rd', '4th'];
-  const sems = ['Sem 1', 'Sem 2'];
+  const years = ['1st', '2nd', '3rd'];
 
   const [filter, setFilter] = useState({ 
     dept: 'CSE', 
-    year: '1st', 
-    sem: 'Sem 1' 
+    year: '1st'
   });
+
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const getExactLink = () => {
     const mapping: any = {
-      'IT': {
-        'folder': '1tos00iL_zOsPN2wPfLOP9feLA3vtpDFH',
-        'years': {
-          '1st': { 'Sem 1': '', 'Sem 2': '' },
-          '2nd': { 'Sem 1': '', 'Sem 2': '' },
-          '3rd': { 'Sem 1': '', 'Sem 2': '' },
-          '4th': { 'Sem 1': '', 'Sem 2': '' }
-        }
-      },
       'CSE': {
-        'folder': '121WbRgjQhf-L2wIYxLSm3WgmyfsBEshy',
-        'years': {
-          '1st': { 'Sem 1': '', 'Sem 2': '' },
-          '2nd': { 'Sem 1': '', 'Sem 2': '' },
-          '3rd': { 'Sem 1': '', 'Sem 2': '' },
-          '4th': { 'Sem 1': '', 'Sem 2': '' }
-        }
+        '1st': '1BN39Wl5bTT9YQE_BB2tczWuHGluriXzr',
+        '2nd': '15tuQA2z8HsG8eO3E_9h-wneMaTze0Jwh',
+        '3rd': '15tuQA2z8HsG8eO3E_9h-wneMaTze0Jwh'
+      },
+      'IT': {
+        '1st': '1W_sNvrXKF_rs70dxLYQLlVyDUm5OR1kC',
+        '2nd': '1655oij6JrsTF8A9G4PFTy1WyetXiTpEL',
+        '3rd': '1KCKQig_QQiiErFmF7cDvxHOAo7A4z-Yx'
       },
       'AIML': {
-        'folder': '1aOg7PAwONBKi4IhI0pKHRMAvcUX6-c5c',
-        'years': {
-          '1st': { 'Sem 1': '', 'Sem 2': '' },
-          '2nd': { 'Sem 1': '', 'Sem 2': '' },
-          '3rd': { 'Sem 1': '', 'Sem 2': '' },
-          '4th': { 'Sem 1': '', 'Sem 2': '' }
-        }
+        '1st': '1JC4-AMjsFkm7Ms83w_Ps-a1baGBj_VjK',
+        '2nd': '1RHBJrFwy3KH4TKd1mPA7bPgYBZxbVp9Q',
+        '3rd': '1-VO376_m1PARyUhX2aHTr9dvlWoREfNd'
       },
       'DS': {
-        'folder': '1pv_mZMjDbG0rf25TNtFy0TOXSeMbgdch',
-        'years': {
-          '1st': { 'Sem 1': '', 'Sem 2': '' },
-          '2nd': { 'Sem 1': '', 'Sem 2': '' },
-          '3rd': { 'Sem 1': '', 'Sem 2': '' },
-          '4th': { 'Sem 1': '', 'Sem 2': '' }
-        }
+        '1st': '1mzJOTPNgEGUPFjx-Np2vFjjZLg2JZHjr',
+        '2nd': '1gUQA1Bop9j7WHnGokLfo0Ta4d9oR3B0P',
+        '3rd': '1wk2AgIMqTn_QcXKYaR5RBsYKF8bJE3pG'
       },
       'ECE': {
-        'folder': '1krirehu9X9xO5KxKuCL8wjmUreERSrwN',
-        'years': {
-          '1st': { 'Sem 1': '', 'Sem 2': '' },
-          '2nd': { 'Sem 1': '', 'Sem 2': '' },
-          '3rd': { 'Sem 1': '', 'Sem 2': '' },
-          '4th': { 'Sem 1': '', 'Sem 2': '' }
-        }
+        '1st': '1SDfpAInqcvOViH2hX4tTlrAwI0DVe7ta',
+        '2nd': '1HbN3U-PqtE7-8hxjIMRWeCfnNX5KKg5i',
+        '3rd': '16AZIoZWDBUwhW5KEHkGGDF0uo3DoRnQr'
       }
     };
 
-    const deptData = mapping[filter.dept];
-    if (!deptData) return null;
-
-    let link = `https://drive.google.com/drive/folders/${deptData.folder}`;
-    
-    const specific = deptData.years?.[filter.year]?.[filter.sem];
-    if (specific) link = `https://drive.google.com/drive/folders/${specific}`;
-
-    return link;
+    const folderId = mapping[filter.dept]?.[filter.year];
+    return folderId ? `https://drive.google.com/drive/folders/${folderId}` : null;
   };
 
-  const copyLink = (e: React.MouseEvent) => {
+  const copyLink = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const link = getExactLink();
     if (link) {
-      navigator.clipboard.writeText(link);
-      alert("Link copied to clipboard!");
+      try {
+        await navigator.clipboard.writeText(link);
+        const btn = e.currentTarget as HTMLButtonElement;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-5 h-5 text-green-400"><path d="M20 6 9 17l-5-5"/></svg><span>Copied!</span>`;
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
     }
   };
 
+  const FilterContent = () => (
+    <>
+      <div className="space-y-4">
+        <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Department</label>
+        <div className="space-y-1">
+          {depts.map(dept => (
+            <button
+              key={dept}
+              onClick={() => {
+                setFilter({...filter, dept});
+                setIsMobileFilterOpen(false);
+              }}
+              className={cn(
+                "w-full text-left px-3 py-2.5 rounded-xl text-sm transition-all duration-300",
+                filter.dept === dept 
+                  ? "bg-yellow-400 text-black font-bold shadow-lg shadow-yellow-400/10" 
+                  : "text-zinc-400 hover:bg-white/5 hover:text-white"
+              )}
+            >
+              {dept}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Year</label>
+        <div className="grid grid-cols-3 gap-2">
+          {years.map(year => (
+            <button
+              key={year}
+              onClick={() => {
+                setFilter({...filter, year});
+                setIsMobileFilterOpen(false);
+              }}
+              className={cn(
+                "px-3 py-2.5 rounded-xl text-xs transition-all duration-300 border",
+                filter.year === year 
+                  ? "bg-yellow-400 border-yellow-400 text-black font-bold shadow-lg shadow-yellow-400/10" 
+                  : "border-white/5 text-zinc-400 hover:border-white/20 hover:text-white bg-white/[0.02]"
+              )}
+            >
+              {year}
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div className="pt-20 min-h-screen bg-zinc-950 flex flex-col md:flex-row relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-400/[0.02] via-transparent to-transparent pointer-events-none" />
-      {/* Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-white/5 p-6 space-y-8 sticky top-20 h-[calc(100vh-5rem)]">
-        <div className="space-y-4">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Department</label>
-          <div className="space-y-1">
-            {depts.map(dept => (
-              <button
-                key={dept}
-                onClick={() => setFilter({...filter, dept})}
-                className={cn(
-                  "w-full text-left px-3 py-2 rounded-lg text-sm transition-all",
-                  filter.dept === dept ? "bg-yellow-400 text-black font-bold" : "text-zinc-400 hover:bg-white/5"
-                )}
-              >
-                {dept}
-              </button>
-            ))}
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-400/[0.01] via-transparent to-transparent pointer-events-none" />
+      
+      {/* Mobile Filter Toggle */}
+      <div className="md:hidden sticky top-20 z-30 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 p-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-lg bg-yellow-400/10 flex items-center justify-center text-yellow-400">
+            <Filter className="w-4 h-4" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Active Filter</p>
+            <p className="text-xs font-bold text-white">{filter.dept} • {filter.year} Year</p>
           </div>
         </div>
+        <button 
+          onClick={() => setIsMobileFilterOpen(true)}
+          className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-white hover:bg-white/10 transition-all"
+        >
+          Change
+        </button>
+      </div>
 
-        <div className="space-y-4">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Year</label>
-          <div className="flex flex-wrap gap-2">
-            {years.map(year => (
-              <button
-                key={year}
-                onClick={() => setFilter({...filter, year})}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs transition-all border",
-                  filter.year === year ? "bg-yellow-400 border-yellow-400 text-black font-bold" : "border-white/10 text-zinc-400 hover:border-white/20"
-                )}
-              >
-                {year}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Mobile Filter Drawer */}
+      <AnimatePresence>
+        {isMobileFilterOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileFilterOpen(false)}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm md:hidden"
+            />
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-x-0 bottom-0 z-50 bg-zinc-900 border-t border-white/10 rounded-t-[2rem] p-8 md:hidden max-h-[80vh] overflow-y-auto"
+            >
+              <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8" />
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-xl font-bold text-white">Filter Resources</h3>
+                <button 
+                  onClick={() => setIsMobileFilterOpen(false)}
+                  className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-zinc-400"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-8">
+                <FilterContent />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
-        <div className="space-y-4">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Semester</label>
-          <div className="flex flex-wrap gap-2">
-            {sems.map(sem => (
-              <button
-                key={sem}
-                onClick={() => setFilter({...filter, sem})}
-                className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs transition-all border",
-                  filter.sem === sem ? "bg-yellow-400 border-yellow-400 text-black font-bold" : "border-white/10 text-zinc-400 hover:border-white/20"
-                )}
-              >
-                {sem}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex w-72 flex-col border-r border-white/5 p-8 space-y-10 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto">
+        <FilterContent />
 
-        {/* Quick Access Sidebar (Mobile/Fallback) */}
-        <div className="space-y-4 pt-4 border-t border-white/5">
-          <div className="flex items-center justify-between">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Quick Actions</label>
-          </div>
+        <div className="space-y-4 pt-6 border-t border-white/5">
+          <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Quick Actions</label>
           <a 
             href={getExactLink() || '#'} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center justify-between p-3 rounded-xl bg-yellow-400/5 border border-yellow-400/20 group hover:bg-yellow-400/10 transition-all"
+            className="flex items-center justify-between p-4 rounded-2xl bg-yellow-400/5 border border-yellow-400/10 group hover:bg-yellow-400/10 hover:border-yellow-400/30 transition-all duration-300"
           >
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-yellow-400/10 flex items-center justify-center text-yellow-400">
-                <ExternalLink className="w-4 h-4" />
+              <div className="w-10 h-10 rounded-xl bg-yellow-400/10 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition-transform">
+                <ExternalLink className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-bold text-white">Open Drive</span>
                 <span className="text-[10px] text-zinc-500">New Tab</span>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-yellow-400 transition-colors" />
+            <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-yellow-400 group-hover:translate-x-1 transition-all" />
           </a>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 space-y-12">
+      <main className="flex-1 p-6 md:p-12 space-y-12">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-1">
+          <div className="space-y-2">
             <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-              <Link to="/" className="hover:text-yellow-400">Home</Link>
+              <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
               <ChevronRight className="w-3 h-3" />
               <span className="text-yellow-500">Resources</span>
             </div>
-            <h1 className="text-4xl font-bold text-white tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight">
               Academic <span className="text-yellow-400">Resources</span>
             </h1>
           </div>
@@ -862,47 +981,79 @@ const ResourcesPage = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-8 md:p-12 rounded-2xl bg-zinc-900 border border-yellow-400/20 relative overflow-hidden group"
+          className="p-8 md:p-16 rounded-[2.5rem] bg-zinc-900 border border-white/5 relative overflow-hidden group"
         >
-          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Zap className="w-48 h-48 text-yellow-400" />
+          <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-700">
+            <Zap className="w-64 h-64 text-yellow-400" />
           </div>
           
-          <div className="relative z-10 space-y-8">
-            <div className="space-y-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Direct Drive Access</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
-                {filter.dept} {filter.year} Year <span className="text-yellow-400">{filter.sem}</span>
+          <div className="relative z-10 space-y-10">
+            <div className="space-y-4">
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/20">
+                <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-500">Direct Drive Access</span>
+              </div>
+              <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
+                {filter.dept} {filter.year} Year <br className="hidden md:block" />
+                <span className="text-yellow-400">Academic</span> Materials
               </h2>
-              <p className="text-zinc-400 text-sm max-w-xl leading-relaxed">
-                Access the complete repository for your current selection. This folder contains all structured notes, previous year papers, and reference materials.
+              <p className="text-zinc-400 text-base md:text-lg max-w-2xl leading-relaxed">
+                Access the complete repository for your current selection. This folder contains all structured notes, previous year papers, and reference materials curated by the community.
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
-              <a 
+              <motion.a 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 href={getExactLink() || '#'} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto flex items-center justify-center space-x-3 px-8 py-4 rounded-xl bg-yellow-400 text-black font-bold hover:bg-yellow-300 transition-all shadow-lg shadow-yellow-400/20"
+                className="w-full sm:w-auto flex items-center justify-center space-x-3 px-10 py-5 rounded-2xl bg-yellow-400 text-black font-bold hover:bg-yellow-300 transition-all shadow-xl shadow-yellow-400/10"
               >
                 <ExternalLink className="w-5 h-5" />
                 <span>Open Google Drive</span>
-              </a>
-              <button 
+              </motion.a>
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={copyLink}
-                className="w-full sm:w-auto flex items-center justify-center space-x-3 px-8 py-4 rounded-xl bg-zinc-950 border border-white/10 text-white font-bold hover:border-yellow-400/50 transition-all"
+                className="w-full sm:w-auto flex items-center justify-center space-x-3 px-10 py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 hover:border-white/20 transition-all"
               >
                 <Zap className="w-5 h-5 text-yellow-400" />
                 <span>Copy Folder Link</span>
-              </button>
+              </motion.button>
             </div>
           </div>
         </motion.div>
+
+        {/* Info Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { icon: BookOpen, title: "Structured Notes", desc: "Handwritten and digital notes from top performers." },
+            { icon: FileText, title: "Previous Papers", desc: "Comprehensive collection of PYQs and model papers." },
+            { icon: Zap, title: "Quick Guides", desc: "Last-minute revision charts and formula sheets." }
+          ].map((item, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + i * 0.1 }}
+              className="p-8 rounded-3xl bg-zinc-900/50 border border-white/5 hover:border-yellow-400/20 transition-all duration-500 group"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-yellow-400/5 flex items-center justify-center text-yellow-400 mb-6 group-hover:scale-110 transition-transform">
+                <item.icon className="w-6 h-6" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+              <p className="text-zinc-500 text-sm leading-relaxed">{item.desc}</p>
+            </motion.div>
+          ))}
+        </div>
       </main>
     </div>
   );
 };
+
 
 const Events = () => {
   const events: { title: string; date: string; type: 'upcoming' | 'past'; category: string; desc: string }[] = [];
