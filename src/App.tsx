@@ -422,7 +422,7 @@ const Footer = ({ useLinks = true }: { useLinks?: boolean }) => (
             Made with ❤️ by <span className="text-yellow-400">IgniteXT Technical Team</span>
           </p>
           <p className="text-zinc-400 text-xs tracking-wider font-medium">
-            <span className="text-yellow-400 font-bold">Sadiq</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Bharath</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Mrudhula</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Santhoshini</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Rohit</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Tehnaaz</span>
+            <span className="text-yellow-400 font-bold">Sadiq</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Mrudhula</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Santhoshini</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Rohit</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Tehnaaz</span>
           </p>
         </div>
       </div>
@@ -497,7 +497,6 @@ const Home = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
             {[
               { name: "Sadiq", role: "Developer", github: "https://github.com/skmdsadiq1607", linkedin: "https://www.linkedin.com/in/shaik-sadiq-b1650a377" },
-              { name: "Bharath", role: "Tech Lead", github: "#", linkedin: "https://www.linkedin.com/in/appala-bharath" },
               { name: "Santhoshini", role: "Developer", github: "#", linkedin: "#" },
               { name: "Mrudhula", role: "Developer", github: "#", linkedin: "https://www.linkedin.com/in/mrudhula-dubbaka-7a9153333" },
               { name: "Rohit", role: "Developer", github: "#", linkedin: "#" },
@@ -720,7 +719,6 @@ const About = () => {
     { name: "Ananya", dept: "AIML", year: "3rd", role: "Operations & Management Lead", category: "Operations & Management", bio: "Ensuring smooth execution of all IgniteXT initiatives and events." },
     { name: "Karthikeya", dept: "AI", year: "3rd", role: "Events & Outreach Lead", category: "Events & Outreach", bio: "Connecting IgniteXT with the broader student body through impactful events." },
     { name: "Sadiq", dept: "IT", year: "2nd", role: "Technical Team", category: "Technical Team", bio: "Full-stack developer focused on building scalable community tools and resources.", github: "https://github.com/skmdsadiq1607" },
-    { name: "Bharath", dept: "AIML", year: "3rd", role: "Technical Team Lead", category: "Technical Team", bio: "Overseeing the technical architecture and development of community tools." },
     { name: "Ashrith", dept: "AIML", year: "1st", role: "Operations & Management", category: "Operations & Management", bio: "Supporting operational tasks and community management." },
     { name: "Asmita", dept: "AI", year: "2nd", role: "Operations & Management", category: "Operations & Management", bio: "Managing resources and coordinating between different departments." },
     { name: "Aasritha", dept: "DS", year: "3rd", role: "Operations & Management", category: "Operations & Management", bio: "Streamlining processes for efficient community growth." },
