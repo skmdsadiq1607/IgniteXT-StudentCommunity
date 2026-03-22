@@ -1250,7 +1250,7 @@ const Events = () => {
             <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight">
               Hello <span className="text-yellow-400">Ignitians!</span>
             </h1>
-            <p className="text-zinc-400 text-lg">Select your college to access department-wise resources, groups, and event updates.</p>
+            <p className="text-zinc-400 text-lg">Select your college to access department-wise resources.</p>
           </div>
           <div className="flex justify-center">
             <CollegeDropdown selectedCollege={selectedCollege} onSelect={setSelectedCollege} />
