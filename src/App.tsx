@@ -496,12 +496,12 @@ const Home = () => {
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
             {[
-              { name: "Sadiq", role: "Developer", github: "https://github.com/skmdsadiq1607", linkedin: "https://www.linkedin.com/in/sk-md-sadiq-1607/" },
-              { name: "Bharath", role: "Tech Lead", github: "#", linkedin: "#" },
+              { name: "Sadiq", role: "Developer", github: "https://github.com/skmdsadiq1607", linkedin: "www.linkedin.com/in/shaik-sadiq-b1650a377" },
+              { name: "Bharath", role: "Tech Lead", github: "#", linkedin: "https://www.linkedin.com/in/appala-bharath" },
               { name: "Santhoshini", role: "Developer", github: "#", linkedin: "#" },
-              { name: "Mrudhula", role: "Developer", github: "#", linkedin: "#" },
+              { name: "Mrudhula", role: "Developer", github: "#", linkedin: "https://www.linkedin.com/in/mrudhula-dubbaka-7a9153333" },
               { name: "Rohit", role: "Developer", github: "#", linkedin: "#" },
-              { name: "Tehnaaz", role: "Developer", github: "#", linkedin: "#" }
+              { name: "Tehnaaz", role: "Developer", github: "#", linkedin: "https://www.linkedin.com/in/tehnaazfathima" }
             ].map((member, i) => (
               <motion.div
                 key={i}
@@ -1527,7 +1527,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
             className="text-center space-y-8 mb-16"
           >
             <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight leading-tight">
-              What is <span className="text-yellow-400">IgniteXT?</span>
+              What is Ignite<span className="text-yellow-400">XT?</span>
             </h1>
             
             {/* Engaging Questions Section */}
