@@ -359,7 +359,7 @@ const Footer = ({ useLinks = true }: { useLinks?: boolean }) => (
             </a>
           )}
           <p className="text-zinc-400 max-w-sm text-sm leading-relaxed">
-            The ultimate student community for Anurag University. Empowering students with structured academic resources, events, and a collaborative ecosystem.
+            The ultimate student community for college students. Empowering students with structured academic resources, events, and a collaborative ecosystem.
           </p>
           <div className="flex space-x-4">
             <a href="https://github.com/skmdsadiq1607" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg border border-white/5 flex items-center justify-center text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/50 transition-all duration-300">
@@ -765,7 +765,7 @@ const About = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8">
               <div className="p-6 rounded-2xl bg-zinc-900 border border-white/5 space-y-3">
                 <h3 className="text-lg font-semibold text-white">Our Mission</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">To empower every student at Anurag University with high-quality academic resources and a collaborative platform for growth.</p>
+                <p className="text-sm text-zinc-400 leading-relaxed">To empower every student with high-quality academic resources and a collaborative platform for growth.</p>
               </div>
               <div className="p-6 rounded-2xl bg-zinc-900 border border-white/5 space-y-3">
                 <h3 className="text-lg font-semibold text-white">Our Vision</h3>
@@ -878,7 +878,7 @@ const About = () => {
                 Ready to <span className="text-yellow-400">Ignite</span> <br className="hidden md:block" /> your journey?
               </h2>
               <p className="text-zinc-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-                Join the most active student community at Anurag University. Access resources, build projects, and grow with us.
+                Join the most active student community. Access resources, build projects, and grow with us.
               </p>
             </div>
             <Link to="/contact" className="inline-flex items-center px-10 py-4 bg-yellow-400 text-black font-bold rounded-2xl hover:bg-yellow-300 transition-all shadow-2xl shadow-yellow-400/20 hover:scale-105 active:scale-95">
@@ -1651,9 +1651,9 @@ const FAQ = () => (
       </div>
       <div className="space-y-6">
         {[
-          { q: "What is IgniteXT?", a: "IgniteXT is a student-led community at Anurag University dedicated to providing academic resources, workshops, and mentorship." },
+          { q: "What is IgniteXT?", a: "IgniteXT is a student-led community at Anurag University dedicated to providing academic resources, workshops, and mentorship across all colleges." },
           { q: "How can I contribute?", a: "You can contribute by sharing your notes, projects, or by joining our technical or content teams. Reach out via the contact form!" },
-          { q: "Are the resources free?", a: "Yes, all resources provided by IgniteXT are completely free for all Anurag University students." },
+          { q: "Are the resources free?", a: "Yes, all resources provided by IgniteXT are completely free for all students." },
           { q: "How do I join a department group?", a: "You can find the WhatsApp group links for each department on our Communities page." }
         ].map((item, i) => (
           <motion.div 
