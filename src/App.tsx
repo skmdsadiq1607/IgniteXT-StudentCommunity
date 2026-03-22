@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CollegeDropdown } from './components/CollegeDropdown';
 import { 
   Home as HomeIcon, 
   BookOpen, 
@@ -200,6 +201,7 @@ const Navbar = () => {
     { name: 'About', path: '/about' },
     { name: 'Notes', path: '/notes' },
     { name: 'Events', path: '/events' },
+    { name: 'Communities', path: '/communities' },
     { name: 'Contact', path: '/contact' },
   ];
 
@@ -451,15 +453,15 @@ const Home = () => {
               className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 text-zinc-400 text-[10px] font-bold uppercase tracking-[0.2em] hover:border-yellow-400/30 hover:text-yellow-400 transition-colors cursor-default"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Anurag University's Premier Tech Hub</span>
+              <span>Premier Tech Hub</span>
             </motion.div>
             
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight text-white">
-              <span className="text-yellow-400">IgniteXT</span> <span className="text-white/40 font-light">x</span> <span className="text-white/90">AnuragU</span>
+              <span className="text-white">Ignite</span><span className="text-yellow-400">XT</span>
             </h1>
             
             <p className="text-base md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-              The ultimate student-led resource hub for <span className="text-white">Anurag University</span>. Empowering the next generation of innovators.
+              The ultimate student-led resource hub. Empowering the next generation of innovators.
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 w-full">
@@ -478,68 +480,6 @@ const Home = () => {
           </motion.div>
         </div>
       </section>
-
-
-
-      {/* Communities Section */}
-      <section className="py-24 bg-zinc-950 border-t border-white/5 relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-r from-yellow-400/[0.03] via-transparent to-yellow-400/[0.03]" />
-        <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-12">
-            <div className="flex-1 space-y-6">
-              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-yellow-400/10 text-yellow-400 text-[10px] font-bold uppercase tracking-widest">
-                <Users className="w-3 h-3" />
-                <span>Join the Community</span>
-              </div>
-              <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
-                Hello <span className="text-yellow-400">Ignitians!</span> 🌟
-              </h2>
-              <p className="text-zinc-400 text-sm md:text-base leading-relaxed max-w-xl">
-                We've created separate department-wise IgniteXT Communities so you can access notes, resources, workshops, contests, career guidance, and event updates.
-              </p>
-              <div className="pt-4">
-                <a 
-                  href="https://whatsapp.com/channel/0029VbAfiQzD38CarXrTNj1g" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center space-x-3 px-6 py-3 bg-zinc-900 text-white rounded-xl border border-white/5 hover:border-yellow-400/50 transition-all font-bold text-sm"
-                >
-                  <MessageSquare className="w-4 h-4 text-yellow-400" />
-                  <span>Official Announcements Channel</span>
-                </a>
-              </div>
-            </div>
-            
-            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-              {[
-                { name: 'CSE', link: 'https://chat.whatsapp.com/DgTk3d9KkthDqV7AFufk9U', icon: '💻' },
-                { name: 'DS (Data Science)', link: 'https://chat.whatsapp.com/BXNValVCyNJ0EYxrYbvzwY', icon: '📊' },
-                { name: 'ECE', link: 'https://chat.whatsapp.com/JarYz1OKCACAcPVJOXOy1i', icon: '📡' },
-                { name: 'IT', link: 'https://chat.whatsapp.com/I0KwboMy8EWEwGqKkhSNt9', icon: '💾' },
-                { name: 'AI', link: 'https://chat.whatsapp.com/K9M05Wk0WtpJru7QKXl8R0', icon: '🧠' }
-              ].map((dept) => (
-                <a 
-                  key={dept.name}
-                  href={dept.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-4 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-yellow-400/30 hover:bg-zinc-900 transition-all flex items-center space-x-4 group"
-                >
-                  <span className="text-xl">{dept.icon}</span>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">{dept.name}</h4>
-                    <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">Join Group</p>
-                  </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-zinc-600 group-hover:text-yellow-400 transition-colors" />
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-
       {/* Technical Team Thanks Section */}
       <section className="py-24 bg-zinc-950 border-t border-white/5 relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent" />
@@ -626,6 +566,141 @@ const Home = () => {
   );
 };
 
+const CommunitiesPage = () => {
+  const [selectedCollege, setSelectedCollege] = useState("Select your college");
+  const [password, setPassword] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const communities = [
+    { name: 'CSE', link: 'https://chat.whatsapp.com/DgTk3d9KkthDqV7AFufk9U', icon: '💻' },
+    { name: 'DS (Data Science)', link: 'https://chat.whatsapp.com/BXNValVCyNJ0EYxrYbvzwY', icon: '📊' },
+    { name: 'ECE', link: 'https://chat.whatsapp.com/JarYz1OKCACAcPVJOXOy1i', icon: '📡' },
+    { name: 'IT', link: 'https://chat.whatsapp.com/I0KwboMy8EWEwGqKkhSNt9', icon: '💾' },
+    { name: 'AI', link: 'https://chat.whatsapp.com/K9M05Wk0WtpJru7QKXl8R0', icon: '🧠' }
+  ];
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === 'IgniteXTxAnuragU') {
+      setIsAuthenticated(true);
+      setError(null);
+    } else {
+      setError("Incorrect password! Please try again.");
+    }
+  };
+
+  if (selectedCollege === "Select your college") {
+    return (
+      <div className="pt-32 pb-24 bg-zinc-950 min-h-screen flex flex-col items-center justify-center px-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center space-y-8 max-w-2xl"
+        >
+          <div className="space-y-4">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Welcome</span>
+            <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight">
+              Hello <span className="text-yellow-400">Ignitians!</span>
+            </h1>
+            <p className="text-zinc-400 text-lg">Select your college to access communities.</p>
+          </div>
+          <div className="flex justify-center">
+            <CollegeDropdown selectedCollege={selectedCollege} onSelect={setSelectedCollege} />
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (selectedCollege !== "Anurag University") {
+    return <InProgressScreen selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege} />;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="pt-32 pb-24 bg-zinc-950 min-h-screen flex flex-col items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center space-y-8 max-w-md w-full"
+        >
+          <div className="space-y-4">
+            <h1 className="text-3xl font-bold text-white">Enter Password</h1>
+            <p className="text-zinc-400">Please enter the password to access Anurag University communities.</p>
+          </div>
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError(null);
+              }}
+              className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-400"
+              placeholder="Enter password"
+            />
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+            <button type="submit" className="w-full bg-yellow-400 text-black font-bold py-3 rounded-xl hover:bg-yellow-300 transition-all">
+              Submit
+            </button>
+          </form>
+          <div className="flex justify-center">
+            <CollegeDropdown selectedCollege={selectedCollege} onSelect={setSelectedCollege} />
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pt-32 pb-24 bg-zinc-950 min-h-screen">
+      <div className="max-w-4xl mx-auto px-4 md:px-8 space-y-12">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight">
+            Anurag University <span className="text-yellow-400">Communities</span>
+          </h1>
+          <p className="text-zinc-400 text-lg">Connect with your department peers, access resources, and stay updated.</p>
+          <div className="flex justify-center pt-4">
+            <CollegeDropdown selectedCollege={selectedCollege} onSelect={setSelectedCollege} />
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {communities.map((dept) => (
+            <a 
+              key={dept.name}
+              href={dept.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-6 rounded-2xl bg-zinc-900 border border-white/5 hover:border-yellow-400/30 hover:bg-zinc-900 transition-all flex items-center space-x-6 group"
+            >
+              <span className="text-4xl">{dept.icon}</span>
+              <div className="flex-1">
+                <h4 className="text-lg font-bold text-white group-hover:text-yellow-400 transition-colors">{dept.name}</h4>
+                <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Join Group</p>
+              </div>
+              <ExternalLink className="w-5 h-5 text-zinc-600 group-hover:text-yellow-400 transition-colors" />
+            </a>
+          ))}
+        </div>
+        
+        <div className="pt-12 border-t border-white/5 text-center">
+          <a 
+            href="https://whatsapp.com/channel/0029VbAfiQzD38CarXrTNj1g" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center space-x-3 px-8 py-4 bg-zinc-900 text-white rounded-2xl border border-white/5 hover:border-yellow-400/50 transition-all font-bold text-base"
+          >
+            <MessageSquare className="w-5 h-5 text-yellow-400" />
+            <span>Official Announcements Channel</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const About = () => {
   const teamData = [
     { name: "Vivek Reddy", dept: "AIML", year: "3rd", role: "IgniteXT Lead", category: "Leads", bio: "Visionary leader driving the core mission of IgniteXT to empower students." },
@@ -682,10 +757,10 @@ const About = () => {
           >
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Our Story</span>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
-              About <span className="text-yellow-400">IgniteXT</span> <span className="text-white">x AnuragU</span>
+              About <span className="text-white">Ignite</span><span className="text-yellow-400">XT</span>
             </h1>
             <p className="text-base md:text-lg text-zinc-400 leading-relaxed">
-              IgniteXT is more than just a resource hub; it's a vibrant student-led ecosystem at Anurag University. Our mission is to bridge the gap between academic theory and practical innovation by providing students with the tools, community, and support they need to excel.
+              IgniteXT is more than just a resource hub; it's a vibrant student-led ecosystem. Our mission is to bridge the gap between academic theory and practical innovation by providing students with the tools, community, and support they need to excel.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8">
               <div className="p-6 rounded-2xl bg-zinc-900 border border-white/5 space-y-3">
@@ -815,7 +890,29 @@ const About = () => {
     </div>
   );
 };
+const InProgressScreen = ({ selectedCollege, setSelectedCollege }: { selectedCollege: string, setSelectedCollege: (c: string) => void }) => (
+  <div className="pt-32 pb-24 bg-zinc-950 min-h-screen flex flex-col items-center justify-center px-4">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="text-center space-y-8 max-w-2xl"
+    >
+      <div className="space-y-4">
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Coming Soon</span>
+        <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight">
+          Work in <span className="text-yellow-400">Progress</span>
+        </h1>
+        <p className="text-zinc-400 text-lg">We are actively working on bringing resources and events to your college. Stay tuned!</p>
+      </div>
+      <div className="flex justify-center">
+        <CollegeDropdown selectedCollege={selectedCollege} onSelect={setSelectedCollege} />
+      </div>
+    </motion.div>
+  </div>
+);
+
 const ResourcesPage = () => {
+  const [selectedCollege, setSelectedCollege] = useState("Select your college");
   const depts = ['CSE', 'IT', 'AIML', 'DS', 'ECE'];
   const years = ['1st', '2nd', '3rd'];
 
@@ -928,6 +1025,33 @@ const ResourcesPage = () => {
     </>
   );
 
+  if (selectedCollege === "Select your college") {
+    return (
+      <div className="pt-32 pb-24 bg-zinc-950 min-h-screen flex flex-col items-center justify-center px-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center space-y-8 max-w-2xl"
+        >
+          <div className="space-y-4">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Welcome</span>
+            <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight">
+              Hello <span className="text-yellow-400">Ignitians!</span>
+            </h1>
+            <p className="text-zinc-400 text-lg">Select your college to access department-wise resources, groups, and event updates.</p>
+          </div>
+          <div className="flex justify-center">
+            <CollegeDropdown selectedCollege={selectedCollege} onSelect={setSelectedCollege} />
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (selectedCollege !== "Anurag University") {
+    return <InProgressScreen selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege} />;
+  }
+
   return (
     <div className="pt-20 min-h-screen bg-zinc-950 flex flex-col md:flex-row relative">
       <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-400/[0.01] via-transparent to-transparent pointer-events-none" />
@@ -1015,7 +1139,7 @@ const ResourcesPage = () => {
 
       {/* Main Content */}
       <main className="flex-1 p-6 md:p-12 space-y-12">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-16">
           <div className="space-y-2">
             <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
               <Link to="/" className="hover:text-yellow-400 transition-colors">Home</Link>
@@ -1026,6 +1150,7 @@ const ResourcesPage = () => {
               Academic <span className="text-yellow-400">Resources</span>
             </h1>
           </div>
+          <CollegeDropdown selectedCollege={selectedCollege} onSelect={setSelectedCollege} />
         </div>
 
         {/* Direct Access Hero */}
@@ -1107,9 +1232,37 @@ const ResourcesPage = () => {
 
 
 const Events = () => {
+  const [selectedCollege, setSelectedCollege] = useState("Select your college");
   const events: { title: string; date: string; type: 'upcoming' | 'past'; category: string; desc: string }[] = [];
 
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+
+  if (selectedCollege === "Select your college") {
+    return (
+      <div className="pt-32 pb-24 bg-zinc-950 min-h-screen flex flex-col items-center justify-center px-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center space-y-8 max-w-2xl"
+        >
+          <div className="space-y-4">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-yellow-500">Welcome</span>
+            <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight">
+              Hello <span className="text-yellow-400">Ignitians!</span>
+            </h1>
+            <p className="text-zinc-400 text-lg">Select your college to access department-wise resources, groups, and event updates.</p>
+          </div>
+          <div className="flex justify-center">
+            <CollegeDropdown selectedCollege={selectedCollege} onSelect={setSelectedCollege} />
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (selectedCollege !== "Anurag University") {
+    return <InProgressScreen selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege} />;
+  }
 
   return (
     <div className="pt-24 pb-24 bg-zinc-950 min-h-screen">
@@ -1120,19 +1273,9 @@ const Events = () => {
             <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-tight">Campus <span className="text-yellow-400">Events</span></h1>
             <p className="text-zinc-400 text-sm max-w-xl leading-relaxed">Join us for workshops, hackathons, and community meetups designed to ignite your potential.</p>
           </div>
+          <CollegeDropdown selectedCollege={selectedCollege} onSelect={setSelectedCollege} />
           
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-            <a 
-              href="https://chat.whatsapp.com/LQBXD6W3Oi9LaU30Ft9mKu" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center justify-center space-x-3 px-6 py-2.5 rounded-xl bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 font-bold text-sm hover:bg-yellow-400 hover:text-black transition-all group w-full sm:w-auto"
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>Events Community</span>
-              <ExternalLink className="w-3 h-3 opacity-50 group-hover:opacity-100" />
-            </a>
-            
             <div className="grid grid-cols-2 sm:flex p-1 bg-zinc-900 rounded-xl border border-white/5 w-full sm:w-auto">
               <button 
                 onClick={() => setActiveTab('upcoming')}
@@ -1198,7 +1341,7 @@ const Events = () => {
             <div className="space-y-2">
               <h3 className="text-2xl font-bold text-white">Stay Tuned! 🚀</h3>
               <p className="text-zinc-500 max-w-md mx-auto">
-                We're currently planning some amazing {activeTab} events for the community. Check back soon or join our WhatsApp channel for instant updates.
+                We're currently planning some amazing {activeTab} events for the community. Check back soon or follow our LinkedIn page for instant updates.
               </p>
             </div>
           </motion.div>
@@ -1254,7 +1397,7 @@ const Contact = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[
                 { icon: Mail, title: 'Email Us', value: 'Ignitext@gmail.com', link: 'https://mail.google.com/mail/?view=cm&fs=1&to=Ignitext@gmail.com' },
-                { icon: MessageSquare, title: 'WhatsApp', value: 'Official Channel', link: 'https://whatsapp.com/channel/0029VbAfiQzD38CarXrTNj1g' },
+                { icon: Linkedin, title: 'LinkedIn', value: 'Follow Us', link: 'https://www.linkedin.com/company/ignitext/' },
                 { icon: HomeIcon, title: 'Location', value: 'Anurag University', link: '#' },
                 { icon: Instagram, title: 'Instagram', value: '@ignite.xt', link: 'https://www.instagram.com/ignite.xt/' }
               ].map((item, i) => (
@@ -1485,6 +1628,7 @@ export default function App() {
               <Route path="/about" element={<About />} />
               <Route path="/notes" element={<ResourcesPage />} />
               <Route path="/events" element={<Events />} />
+              <Route path="/communities" element={<CommunitiesPage />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
@@ -1510,7 +1654,7 @@ const FAQ = () => (
           { q: "What is IgniteXT?", a: "IgniteXT is a student-led community at Anurag University dedicated to providing academic resources, workshops, and mentorship." },
           { q: "How can I contribute?", a: "You can contribute by sharing your notes, projects, or by joining our technical or content teams. Reach out via the contact form!" },
           { q: "Are the resources free?", a: "Yes, all resources provided by IgniteXT are completely free for all Anurag University students." },
-          { q: "How do I join a department group?", a: "You can find the WhatsApp group links for each department on our Home page under the 'Communities' section." }
+          { q: "How do I join a department group?", a: "You can find the WhatsApp group links for each department on our Communities page." }
         ].map((item, i) => (
           <motion.div 
             key={i}
