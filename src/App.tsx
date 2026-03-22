@@ -422,7 +422,7 @@ const Footer = ({ useLinks = true }: { useLinks?: boolean }) => (
             Made with ❤️ by <span className="text-yellow-400">IgniteXT Technical Team</span>
           </p>
           <p className="text-zinc-400 text-xs tracking-wider font-medium">
-            <span className="text-yellow-400 font-bold">Sadiq</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Mrudhula</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Santhoshini</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Rohit</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Tehnaaz</span>
+            <span className="text-yellow-400 font-bold">Sadiq</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Mrudhula</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Santhoshini</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Rohit</span> <span className="text-zinc-600 mx-1">|</span> <span className="text-yellow-400 font-bold">Tehnaaz</span>
           </p>
         </div>
       </div>
