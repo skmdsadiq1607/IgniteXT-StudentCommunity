@@ -496,7 +496,7 @@ const Home = () => {
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
             {[
-              { name: "Sadiq", role: "Developer", github: "https://github.com/skmdsadiq1607", linkedin: "www.linkedin.com/in/shaik-sadiq-b1650a377" },
+              { name: "Sadiq", role: "Developer", github: "https://github.com/skmdsadiq1607", linkedin: "https://www.linkedin.com/in/shaik-sadiq-b1650a377" },
               { name: "Bharath", role: "Tech Lead", github: "#", linkedin: "https://www.linkedin.com/in/appala-bharath" },
               { name: "Santhoshini", role: "Developer", github: "#", linkedin: "#" },
               { name: "Mrudhula", role: "Developer", github: "#", linkedin: "https://www.linkedin.com/in/mrudhula-dubbaka-7a9153333" },
@@ -1552,7 +1552,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
             </div>
 
             <p className="text-white text-lg md:text-2xl font-bold pt-4">
-              Don't worry, IgniteXT is your one-stop solution.
+              Don't worry, Ignite<span className="text-yellow-400">XT is your one-stop solution.
             </p>
           </motion.div>
 
