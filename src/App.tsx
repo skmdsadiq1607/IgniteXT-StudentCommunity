@@ -1550,7 +1550,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
             </div>
 
             <p className="text-white text-lg md:text-2xl font-bold pt-4">
-              Don't worry, Ignite<span className="text-yellow-400">XT is your one-stop solution.
+              Don't worry, Ignite<span className="text-yellow-400">XT</span> is your one-stop solution.
             </p>
           </motion.div>
 
