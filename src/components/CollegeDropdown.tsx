@@ -6,7 +6,7 @@ interface CollegeDropdownProps {
   onSelect: (college: string) => void;
 }
 
-const colleges = ["Anurag University", "CVR College of Engineering", "Other College 1", "Other College 2"];
+const colleges = ["Anurag University", "Other College 1", "Other College 2"];
 
 export const CollegeDropdown: React.FC<CollegeDropdownProps> = ({ selectedCollege, onSelect }) => {
   const [isOpen, setIsOpen] = React.useState(false);
