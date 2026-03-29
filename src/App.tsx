@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { Analytics } from '@vercel/analytics/react';
 
 import { 
   collection, 
@@ -1636,6 +1637,7 @@ export default function App() {
           <Footer />
         </div>
       </Router>
+      <Analytics />
     </ErrorBoundary>
   );
 }
