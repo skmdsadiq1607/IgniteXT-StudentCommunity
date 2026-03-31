@@ -1578,7 +1578,7 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 + i * 0.1 }}
-                className="p-6 rounded-2xl bg-zinc-900/50 border border-white/5 hover:border-yellow-400/30 transition-colors"
+                className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-yellow-400/30 transition-colors"
               >
                 <item.icon className="w-6 h-6 text-yellow-400 mb-4" />
                 <h3 className="text-lg font-semibold text-white mb-2">{item.title}</h3>
