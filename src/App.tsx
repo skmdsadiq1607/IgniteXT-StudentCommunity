@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Analytics } from '@vercel/analytics/react';
 import { CollegeDropdown } from './components/CollegeDropdown';
 import { 
   Home as HomeIcon, 
@@ -1624,8 +1625,8 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
-              <Route path="/notes" element={<ResourcesPage />} />
               <Route path="/events" element={<Events />} />
+              <Route path="/notes" element={<ResourcesPage />} />
               <Route path="/communities" element={<CommunitiesPage />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/faq" element={<FAQ />} />
@@ -1636,6 +1637,7 @@ export default function App() {
           <Footer />
         </div>
       </Router>
+      <Analytics />
     </ErrorBoundary>
   );
 }
