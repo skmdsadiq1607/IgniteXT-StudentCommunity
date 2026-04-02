@@ -135,6 +135,21 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// --- Analytics ---
+const Analytics = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('config', 'G-LBM6JVLBLZ', {
+        page_path: location.pathname + location.search,
+      });
+    }
+  }, [location]);
+
+  return null;
+};
+
 // --- Components ---
 const Logo = ({ className = "w-10 h-10", iconOnly = false }: { className?: string, iconOnly?: boolean }) => (
   <div className="flex items-center space-x-3 group">
@@ -1615,6 +1630,7 @@ export default function App() {
       </AnimatePresence>
 
       <Router>
+        <Analytics />
         <div className={cn(
           "min-h-screen bg-black text-white selection:bg-yellow-500/30 selection:text-yellow-500 transition-opacity duration-1000",
           hasStarted ? "opacity-100" : "opacity-0 pointer-events-none"
