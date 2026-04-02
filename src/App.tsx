@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Analytics } from '@vercel/analytics/react';
 import { CollegeDropdown } from './components/CollegeDropdown';
 import { 
   Home as HomeIcon, 
@@ -1634,6 +1635,7 @@ export default function App() {
             </Routes>
           </main>
           <Footer />
+          <Analytics />
         </div>
       </Router>
     </ErrorBoundary>
