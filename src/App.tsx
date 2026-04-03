@@ -941,7 +941,7 @@ const ResourcesPage = () => {
       'CSE': {
         '1st': '1BN39Wl5bTT9YQE_BB2tczWuHGluriXzr',
         '2nd': '15tuQA2z8HsG8eO3E_9h-wneMaTze0Jwh',
-        '3rd': '15tuQA2z8HsG8eO3E_9h-wneMaTze0Jwh'
+        '3rd': '1OoLqZ0leWiJOEvbB81rDI_EQfKmH6VHE'
       },
       'IT': {
         '1st': '1W_sNvrXKF_rs70dxLYQLlVyDUm5OR1kC',
