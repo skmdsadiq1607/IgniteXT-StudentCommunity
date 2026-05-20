@@ -33,21 +33,16 @@ import {
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
 import { 
   collection, 
   addDoc, 
-  getDocs, 
-  query, 
-  where, 
-  onSnapshot,
-  serverTimestamp,
-  writeBatch,
-  doc
+  serverTimestamp 
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
+
+
 
 
 enum OperationType {
