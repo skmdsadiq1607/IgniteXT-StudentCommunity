@@ -1599,8 +1599,7 @@ const Contact = () => {
 };
 
 // --- Landing Page ---
-const LandingPage = () => {
-  const { signInWithGoogle } = useAuth();
+const LandingPage = ({ onGetStarted }: { onGetStarted: () => void }) => {
   return (
     <div className="fixed inset-0 z-[200] bg-zinc-950 overflow-y-auto selection:bg-yellow-400 selection:text-black">
       <div className="min-h-screen flex flex-col items-center justify-center py-20 relative">
@@ -1630,11 +1629,11 @@ const LandingPage = () => {
                 "Looking for premium resources?"
               ].map((q, i) => (
                 <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 + i * 0.1 }}
-                  className="flex items-center space-x-3 text-zinc-400"
+                   key={i}
+                   initial={{ opacity: 0, x: -10 }}
+                   animate={{ opacity: 1, x: 0 }}
+                   transition={{ delay: 0.2 + i * 0.1 }}
+                   className="flex items-center space-x-3 text-zinc-400"
                 >
                   <Sparkles className="w-4 h-4 text-yellow-400" />
                   <span className="text-sm md:text-base font-medium">{q}</span>
@@ -1652,7 +1651,7 @@ const LandingPage = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.6 }}
-            onClick={signInWithGoogle}
+            onClick={onGetStarted}
             className="mb-24 px-10 py-5 bg-yellow-400 text-black font-black rounded-2xl hover:bg-yellow-300 transition-all shadow-lg shadow-yellow-400/20 flex items-center space-x-3 cursor-pointer"
           >
             <span className="tracking-widest font-black">GET STARTED NOW</span>
@@ -1689,9 +1688,81 @@ const LandingPage = () => {
   );
 };
 
+// --- Login Page ---
+const LoginPage = ({ onBack }: { onBack: () => void }) => {
+  const { signInWithGoogle } = useAuth();
+  return (
+    <div className="fixed inset-0 z-[200] bg-zinc-950 overflow-y-auto selection:bg-yellow-400 selection:text-black flex items-center justify-center">
+      {/* Subtle Background Elements */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-yellow-400/5 to-transparent pointer-events-none" />
+      
+      {/* Glowing accent circle */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-yellow-400/5 blur-[120px] pointer-events-none" />
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="max-w-md w-full px-6 relative z-10"
+      >
+        <div className="p-8 md:p-10 rounded-3xl bg-zinc-900/60 border border-white/10 backdrop-blur-xl shadow-2xl relative space-y-8 overflow-hidden">
+          {/* Subtle light reflect */}
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          
+          <div className="text-center space-y-4">
+            <button onClick={onBack} className="absolute top-6 left-6 p-2 rounded-xl bg-white/5 border border-white/5 hover:border-yellow-400/20 text-zinc-400 hover:text-yellow-400 transition-all cursor-pointer">
+              <Logo className="w-6 h-6" iconOnly={true} />
+            </button>
+            
+            <div className="pt-8 flex justify-center">
+              <Logo className="w-16 h-16 scale-110" />
+            </div>
+            
+            <div className="space-y-2 pt-2">
+              <h2 className="text-2xl font-bold tracking-tight text-white">Join the Community</h2>
+              <p className="text-zinc-400 text-sm max-w-xs mx-auto leading-relaxed">
+                Unlock exclusive academic resources, events, and dynamic department study hubs.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={signInWithGoogle}
+              className="w-full py-4.5 rounded-2xl bg-white text-black font-bold flex items-center justify-center space-x-3 cursor-pointer shadow-lg shadow-white/5 hover:bg-zinc-100 transition-all duration-300 relative overflow-hidden group"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.859-3.578-7.859-8s3.53-8 7.859-8c2.46 0 4.105 1.025 5.047 1.926l3.256-3.133C18.3 1.761 15.537 1 12.24 1 6.033 1 1 5.925 1 12s5.033 11 11.24 11c6.478 0 10.793-4.454 10.793-10.722 0-.728-.078-1.282-.176-1.993H12.24Z" />
+              </svg>
+              <span className="text-sm font-bold tracking-wide">Continue with Google</span>
+            </motion.button>
+
+            <button 
+              onClick={onBack}
+              className="w-full py-4 rounded-2xl bg-zinc-950 border border-white/5 hover:border-white/10 text-zinc-400 hover:text-white text-sm font-bold transition-all cursor-pointer"
+            >
+              Back to Landing Page
+            </button>
+          </div>
+
+          <div className="text-center pt-2">
+            <p className="text-[10px] text-zinc-500 max-w-xs mx-auto leading-relaxed">
+              By signing in, you agree to our <a href="/terms-of-service" className="text-yellow-400/80 hover:text-yellow-400 transition-colors">Terms of Service</a> and <a href="/privacy-policy" className="text-yellow-400/80 hover:text-yellow-400 transition-colors">Privacy Policy</a>.
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 // --- App Content Component ---
 function AppContent() {
   const { user, loading } = useAuth();
+  const [showLoginPage, setShowLoginPage] = useState(false);
 
   if (loading) {
     return (
@@ -1713,14 +1784,25 @@ function AppContent() {
 
   return (
     <>
-      <AnimatePresence>
-        {!hasStarted && (
+      <AnimatePresence mode="wait">
+        {!hasStarted && !showLoginPage && (
           <motion.div
             key="landing"
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.3 }}
           >
-            <LandingPage />
+            <LandingPage onGetStarted={() => setShowLoginPage(true)} />
+          </motion.div>
+        )}
+        {!hasStarted && showLoginPage && (
+          <motion.div
+            key="login"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <LoginPage onBack={() => setShowLoginPage(false)} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -1752,6 +1834,7 @@ function AppContent() {
     </>
   );
 }
+
 
 // --- Main App ---
 export default function App() {
