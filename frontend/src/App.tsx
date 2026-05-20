@@ -27,7 +27,8 @@ import {
   User,
   Filter,
   Moon,
-  Sun
+  Sun,
+  LogOut
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -43,8 +44,10 @@ import {
   writeBatch,
   doc
 } from 'firebase/firestore';
-import { GoogleGenAI } from "@google/genai";
 import { db } from './firebase';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast';
+
 
 enum OperationType {
   CREATE = 'create',
@@ -119,16 +122,6 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
     return this.props.children;
   }
 }
-
-// --- Gemini Service ---
-const getGeminiResponse = async (prompt: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt
-  });
-  return response.text;
-};
 
 // --- Utility ---
 function cn(...inputs: ClassValue[]) {
@@ -207,9 +200,85 @@ const ThemeToggle = () => {
   );
 };
 
+const UserMenuDropdown = () => {
+  const { user, logout } = useAuth();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  if (!user) return null;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+        className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-white/5 transition-all duration-300 group focus:outline-none cursor-pointer"
+        aria-expanded={dropdownOpen}
+        aria-haspopup="true"
+      >
+        <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10 group-hover:border-yellow-400/50 transition-all duration-500 relative">
+          <div className="absolute inset-0 bg-yellow-400/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          {user.photoURL ? (
+            <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" referrerpolicy="no-referrer" />
+          ) : (
+            <div className="w-full h-full bg-zinc-800 text-yellow-400 flex items-center justify-center font-bold text-xs uppercase">
+              {user.displayName?.charAt(0) || user.email?.charAt(0) || "U"}
+            </div>
+          )}
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {dropdownOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="absolute right-0 mt-2 w-64 rounded-xl bg-zinc-900 border border-white/10 shadow-2xl p-4 z-50 text-left space-y-4"
+            >
+              <div className="flex items-center space-x-3 pb-3 border-b border-white/5">
+                <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10">
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" referrerpolicy="no-referrer" />
+                  ) : (
+                    <div className="w-full h-full bg-zinc-800 text-yellow-400 flex items-center justify-center font-bold text-sm uppercase">
+                      {user.displayName?.charAt(0) || "U"}
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="text-sm font-bold text-white truncate leading-none mb-1">
+                    {user.displayName || 'Ignitian'}
+                  </span>
+                  <span className="text-[10px] text-zinc-500 truncate leading-none">
+                    {user.email || ''}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setDropdownOpen(false);
+                  logout();
+                }}
+                className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-400 text-xs font-bold transition-all cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out</span>
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -267,8 +336,9 @@ const Navbar = () => {
                 <div className="absolute inset-0 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10" />
               </Link>
             ))}
-            <div className="pl-4 ml-2 border-l border-white/10">
+            <div className="pl-4 ml-2 border-l border-white/10 flex items-center space-x-2">
               <ThemeToggle />
+              <UserMenuDropdown />
             </div>
           </div>
 
@@ -333,6 +403,45 @@ const Navbar = () => {
               ))}
             </div>
             
+            {user && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.35 }}
+                className="pt-8 border-t border-white/10 flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-3 min-w-0">
+                  <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" referrerpolicy="no-referrer" />
+                    ) : (
+                      <div className="w-full h-full bg-zinc-800 text-yellow-400 flex items-center justify-center font-bold text-sm uppercase">
+                        {user.displayName?.charAt(0) || "U"}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-bold text-white truncate leading-none mb-1">
+                      {user.displayName || 'Ignitian'}
+                    </span>
+                    <span className="text-[10px] text-zinc-500 truncate leading-none">
+                      {user.email || ''}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    logout();
+                  }}
+                  className="p-2.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors cursor-pointer"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </motion.div>
+            )}
+
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -582,9 +691,6 @@ const Home = () => {
 
 const CommunitiesPage = () => {
   const [selectedCollege, setSelectedCollege] = useState("Select your college");
-  const [password, setPassword] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const communities = [
     { name: 'CSE', link: 'https://chat.whatsapp.com/DgTk3d9KkthDqV7AFufk9U', icon: '💻' },
@@ -593,16 +699,6 @@ const CommunitiesPage = () => {
     { name: 'IT', link: 'https://chat.whatsapp.com/I0KwboMy8EWEwGqKkhSNt9', icon: '💾' },
     { name: 'AI', link: 'https://chat.whatsapp.com/K9M05Wk0WtpJru7QKXl8R0', icon: '🧠' }
   ];
-
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === 'IgniteXTxAnuragU') {
-      setIsAuthenticated(true);
-      setError(null);
-    } else {
-      setError("Incorrect password! Please try again.");
-    }
-  };
 
   if (selectedCollege === "Select your college") {
     return (
@@ -629,42 +725,6 @@ const CommunitiesPage = () => {
 
   if (selectedCollege !== "Anurag University") {
     return <InProgressScreen selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege} />;
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="pt-32 pb-24 bg-zinc-950 min-h-screen flex flex-col items-center justify-center px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-8 max-w-md w-full"
-        >
-          <div className="space-y-4">
-            <h1 className="text-3xl font-bold text-white">Enter Password</h1>
-            <p className="text-zinc-400">Please enter the password to access Anurag University communities.</p>
-          </div>
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setError(null);
-              }}
-              className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-400"
-              placeholder="Enter password"
-            />
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            <button type="submit" className="w-full bg-yellow-400 text-black font-bold py-3 rounded-xl hover:bg-yellow-300 transition-all">
-              Submit
-            </button>
-          </form>
-          <div className="flex justify-center">
-            <CollegeDropdown selectedCollege={selectedCollege} onSelect={setSelectedCollege} />
-          </div>
-        </motion.div>
-      </div>
-    );
   }
 
   return (
@@ -1365,12 +1425,24 @@ const Events = () => {
 };
 
 const Contact = () => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
     message: ''
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: prev.name || user.displayName || '',
+        email: prev.email || user.email || ''
+      }));
+    }
+  }, [user]);
+
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1384,7 +1456,12 @@ const Contact = () => {
         timestamp: serverTimestamp()
       });
       setStatus('success');
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      setFormData({
+        name: user?.displayName || '',
+        email: user?.email || '',
+        subject: '',
+        message: ''
+      });
       setTimeout(() => setStatus('idle'), 5000);
     } catch (error) {
       handleFirestoreError(error, OperationType.WRITE, path);
@@ -1522,7 +1599,8 @@ const Contact = () => {
 };
 
 // --- Landing Page ---
-const LandingPage = ({ onStart }: { onStart: () => void }) => {
+const LandingPage = () => {
+  const { signInWithGoogle } = useAuth();
   return (
     <div className="fixed inset-0 z-[200] bg-zinc-950 overflow-y-auto selection:bg-yellow-400 selection:text-black">
       <div className="min-h-screen flex flex-col items-center justify-center py-20 relative">
@@ -1574,10 +1652,10 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.6 }}
-            onClick={onStart}
-            className="mb-24 px-10 py-5 bg-yellow-400 text-black font-black rounded-2xl hover:bg-yellow-300 transition-all shadow-lg shadow-yellow-400/20 flex items-center space-x-3"
+            onClick={signInWithGoogle}
+            className="mb-24 px-10 py-5 bg-yellow-400 text-black font-black rounded-2xl hover:bg-yellow-300 transition-all shadow-lg shadow-yellow-400/20 flex items-center space-x-3 cursor-pointer"
           >
-            <span className="tracking-widest">GET STARTED NOW</span>
+            <span className="tracking-widest font-black">GET STARTED NOW</span>
             <ArrowRight className="w-5 h-5" />
           </motion.button>
 
@@ -1611,12 +1689,30 @@ const LandingPage = ({ onStart }: { onStart: () => void }) => {
   );
 };
 
-// --- Main App ---
-export default function App() {
-  const [hasStarted, setHasStarted] = useState(false);
+// --- App Content Component ---
+function AppContent() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-yellow-400/5 to-transparent pointer-events-none" />
+        <div className="text-center space-y-6 relative z-10">
+          <Logo className="w-16 h-16 mx-auto animate-bounce animate-duration-1000" iconOnly={true} />
+          <div className="flex items-center justify-center space-x-2">
+            <RefreshCw className="w-5 h-5 text-yellow-400 animate-spin" />
+            <span className="text-sm font-medium tracking-widest text-zinc-400 uppercase">Connecting to IgniteXT...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const hasStarted = !!user;
 
   return (
-    <ErrorBoundary>
+    <>
       <AnimatePresence>
         {!hasStarted && (
           <motion.div
@@ -1624,7 +1720,7 @@ export default function App() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
           >
-            <LandingPage onStart={() => setHasStarted(true)} />
+            <LandingPage />
           </motion.div>
         )}
       </AnimatePresence>
@@ -1652,7 +1748,19 @@ export default function App() {
           <Footer />
         </div>
       </Router>
-    </ErrorBoundary>
+      <Toaster position="bottom-right" reverseOrder={false} />
+    </>
+  );
+}
+
+// --- Main App ---
+export default function App() {
+  return (
+    <AuthProvider>
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
+    </AuthProvider>
   );
 }
 
