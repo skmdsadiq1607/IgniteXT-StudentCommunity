@@ -97,11 +97,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               photoURL: profile.picture,
             };
 
+            // Sync user profile data with MongoDB backend
+            try {
+              const backendUrl = (import.meta as any).env.VITE_API_URL || 'https://ignitext-studentcommunity.onrender.com';
+              await fetch(`${backendUrl}/api/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData),
+              });
+            } catch (dbErr) {
+              console.error('Failed to sync user profile with MongoDB Atlas:', dbErr);
+            }
+
             setUser(userData);
             localStorage.setItem('ignitext_user', JSON.stringify(userData));
 
             toast.success(`Welcome back, ${profile.given_name || profile.name}! 🚀`, {
               id: toastId,
+
               style: {
                 background: '#18181b',
                 color: '#ffffff',
