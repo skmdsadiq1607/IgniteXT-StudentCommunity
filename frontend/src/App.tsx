@@ -217,7 +217,7 @@ const UserMenuDropdown = () => {
         <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10 group-hover:border-yellow-400/50 transition-all duration-500 relative">
           <div className="absolute inset-0 bg-yellow-400/5 opacity-0 group-hover:opacity-100 transition-opacity" />
           {user.photoURL ? (
-            <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" referrerpolicy="no-referrer" />
+            <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           ) : (
             <div className="w-full h-full bg-zinc-800 text-yellow-400 flex items-center justify-center font-bold text-xs uppercase">
               {user.displayName?.charAt(0) || user.email?.charAt(0) || "U"}
@@ -240,7 +240,7 @@ const UserMenuDropdown = () => {
               <div className="flex items-center space-x-3 pb-3 border-b border-white/5">
                 <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10">
                   {user.photoURL ? (
-                    <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" referrerpolicy="no-referrer" />
+                    <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
                     <div className="w-full h-full bg-zinc-800 text-yellow-400 flex items-center justify-center font-bold text-sm uppercase">
                       {user.displayName?.charAt(0) || "U"}
@@ -413,7 +413,7 @@ const Navbar = () => {
                 <div className="flex items-center space-x-3 min-w-0">
                   <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 flex-shrink-0">
                     {user.photoURL ? (
-                      <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" referrerpolicy="no-referrer" />
+                      <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     ) : (
                       <div className="w-full h-full bg-zinc-800 text-yellow-400 flex items-center justify-center font-bold text-sm uppercase">
                         {user.displayName?.charAt(0) || "U"}
